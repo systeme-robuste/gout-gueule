@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goût Gueule 🍽️</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --rouge: #C0392B;
+            --rouge-fonce: #96241A;
+            --creme: #FAF7F2;
+            --brun: #2C1810;
+            --gris: #6B6B6B;
+            --gris-clair: #E8E3DC;
+            --or: #D4A853;
+            --surface: #F5F0EB;
+            --bg: var(--creme);
+            --text: var(--brun);
+            --card: #FFFFFF;
+            --border: var(--gris-clair);
+            --shadow: 0 2px 12px rgba(44, 24, 16, 0.12);
+            --nav-h: 44px;
+        }
+
+        [data-theme="dark"] {
+            --text: #F0EBE3;
+            --bg: #1A1008;
+            --card: #251510;
+            --surface: #2E1A0E;
+            --border: #3D2415;
+            --gris-clair: #3D2415;
+            --brun: #F0EBE3;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            line-height: 1.65;
+            transition: background 0.3s, color 0.3s;
+        }
+        h1, h2, h3, .brand { font-family: 'Playfair Display', serif; }
+        
+        a { color: var(--rouge); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: var(--rouge-fonce); }
+
+        .container { max-width: 840px; margin: 0 auto; padding: 0 15px; }
+
+        /* Navigation */
+        nav {
+            position: sticky; top: 0; z-index: 1000;
+            background: var(--rouge); height: var(--nav-h);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .ws-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
+        .ws-dot.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+
+        /* Cover & Profile */
+        .cover {
+            height: 260px; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover; background-position: center; border-radius: 0 0 12px 12px;
+        }
+        .profile-wrap { margin-top: -36px; padding-bottom: 20px; }
+        .profile-card {
+            background: var(--card); border-radius: 12px; padding: 20px;
+            box-shadow: var(--shadow); position: relative;
+        }
+        .profile-logo {
+            width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--card);
+            position: absolute; top: -60px; left: 20px; object-fit: cover; background: white;
+        }
+        .profile-content { margin-left: 140px; }
+        .profile-name { font-size: 28px; font-weight: 900; }
+        .profile-bio { font-size: 14px; color: var(--gris); margin: 5px 0; }
+        
+        .profile-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn {
+            padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 6px; transition: 0.2s;
+        }
+        .btn-primary { background: var(--rouge); color: white; }
+        .btn-primary:hover { background: var(--rouge-fonce); }
+        .btn-secondary { background: var(--surface); color: var(--text); }
+
+        /* Layout */
+        .main-layout { display: flex; gap: 20px; margin-top: 20px; }
+        .sidebar { width: 270px; flex-shrink: 0; }
+        .feed { flex: 1; min-width: 0; }
+
+        .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: var(--shadow); }
+        .card-title { font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+
+        /* Post Card */
+        .post-card { padding: 0; overflow: hidden; }
+        .post-header { padding: 12px 15px; display: flex; align-items: center; gap: 10px; }
+        .post-header img { width: 40px; height: 40px; border-radius: 50%; }
+        .post-info { flex: 1; }
+        .post-author { font-weight: 700; font-size: 14px; }
+        .post-meta { font-size: 12px; color: var(--gris); }
+        
+        .post-body { padding: 0 15px 15px; }
+        .post-title { font-size: 20px; margin-bottom: 10px; }
+        .post-content { font-size: 15px; }
+        .post-media { margin-top: 10px; display: grid; gap: 2px; }
+        .post-media img, .post-media video { width: 100%; border-radius: 4px; }
+        
+        .post-footer { border-top: 1px solid var(--border); display: flex; padding: 5px; }
+        .post-footer button { flex: 1; background: none; border: none; padding: 10px; color: var(--gris); font-weight: 600; cursor: pointer; border-radius: 4px; }
+        .post-footer button:hover { background: var(--surface); color: var(--rouge); }
+
+        /* Stories */
+        .stories-row { 
+            display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; 
+            scrollbar-width: none;
+        }
+        .stories-row::-webkit-scrollbar { display: none; }
+        .story-thumb {
+            width: 82px; height: 130px; flex-shrink: 0; border-radius: 12px;
+            background: #000; position: relative; border: 2px solid var(--rouge);
+            cursor: pointer; overflow: hidden;
+        }
+        .story-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .story-text { 
+            position: absolute; bottom: 5px; left: 5px; right: 5px; 
+            color: white; font-size: 10px; font-weight: 600; 
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-card {
+            background: var(--card); border-radius: 12px; width: 95%; max-width: 500px;
+            padding: 20px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        
+        /* Utility */
+        .hidden { display: none !important; }
+        input, textarea, select {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--surface); color: var(--text); outline: none; margin-bottom: 10px;
+        }
+        
+        @media (max-width: 660px) {
+            .main-layout { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .profile-content { margin-left: 0; margin-top: 60px; text-align: center; }
+            .profile-logo { left: 50%; transform: translateX(-50%); }
+            .profile-actions { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="brand">🍽️ Goût Gueule</div>
+    <div class="nav-right">
+        <div id="wsStatus" class="ws-dot" title="WebSocket Status"></div>
+        <button class="btn btn-secondary" onclick="toggleTheme()" style="padding: 5px 10px;">🌙</button>
+        <div id="navAuth">
+            <button class="btn btn-primary" onclick="openModal('authModal')">Connexion</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="cover"></div>
+    
+    <div class="profile-wrap">
+        <div class="profile-card">
+            <img src="https://via.placeholder.com/120" id="profileLogo" class="profile-logo">
+            <div class="profile-content">
+                <h1 class="profile-name" id="pageName">Goût Gueule</h1>
+                <p class="profile-bio" id="pageBio">Chargement...</p>
+                <div class="profile-actions">
+                    <button class="btn btn-primary">👍 J'aime</button>
+                    <button class="btn btn-secondary" id="adminTabBtn" onclick="showTab('admin')" style="display:none">⚙️ Admin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stories-row" id="storiesList">
+        <!-- Stories injected here -->
+    </div>
+
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="card">
+                <div class="card-title">À propos</div>
+                <p id="sidebarBio" style="font-size: 14px;"></p>
+                <div id="socialLinks" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:10px;"></div>
+            </div>
+            
+            <div class="card" style="background: linear-gradient(135deg, var(--rouge), #E74C3C); color: white;">
+                <div class="card-title" style="border-color: rgba(255,255,255,0.2);">Newsletter</div>
+                <p style="font-size: 12px; margin-bottom: 10px;">Recevez nos dernières pépites culinaires directement par email.</p>
+                <input type="email" id="newsEmail" placeholder="Votre email" style="background: white; color: black;">
+                <button class="btn" style="background: var(--brun); color: white; width: 100%;" onclick="subscribe()">S'abonner</button>
+            </div>
+        </aside>
+
+        <main class="feed" id="feed">
+            <div id="adminTab" class="hidden">
+                <div class="card">
+                    <div class="card-title">Tableau de bord Admin</div>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px;" id="adminStats">
+                        <!-- Stats boxes -->
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Actions Rapides</div>
+                    <button class="btn btn-primary" onclick="showTab('feed')">Retour au fil</button>
+                    <button class="btn btn-secondary" onclick="syncCMS('wordpress')">Sync WordPress</button>
+                </div>
+            </div>
+
+            <div id="feedTab">
+                <div id="adminComposer" class="card hidden">
+                <div class="card-title">Publier quelque chose</div>
+                <input type="text" id="postTitle" placeholder="Titre de la publication">
+                <textarea id="postContent" placeholder="Quoi de neuf ? (Markdown supporté)" style="min-height: 120px;"></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <input type="file" id="postFiles" multiple style="width: auto; margin: 0;">
+                    <button class="btn btn-primary" onclick="publishPost()">Publier</button>
+                </div>
+            </div>
+            <div id="postsList">
+                <p style="text-align: center; padding: 20px;">Chargement des publications...</p>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- MODALS -->
+<div id="authModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Connexion</h3>
+            <button onclick="closeModal('authModal')" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+        </div>
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPass" placeholder="Mot de passe">
+        <button class="btn btn-primary" style="width: 100%;" onclick="login()">Se connecter</button>
+        <p style="text-align: center; margin-top: 15px; font-size: 12px;">Email: admin@goutgueule.com | Pass: admin123</p>
+    </div>
+</div>
+
+<script>
+    let state = {
+        user: null,
+        posts: [],
+        stories: [],
+        settings: {},
+        ws: null
+    };
+
+    async function init() {
+        await checkAuth();
+        await loadSettings();
+        await loadPosts();
+        await loadStories();
+        setupWS();
+    }
+
+    async function api(path, method = 'GET', body = null) {
+        const options = { method, headers: {} };
+        if (body && !(body instanceof FormData)) {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(body);
+        } else if (body) {
+            options.body = body;
+        }
+        const res = await fetch(path, options);
+        return res.json();
+    }
+
+    async function checkAuth() {
+        const data = await api('/api/auth/me');
+        state.user = data.user;
+        renderAuth();
+    }
+
+    function renderAuth() {
+        const navAuth = document.getElementById('navAuth');
+        const adminComposer = document.getElementById('adminComposer');
+        const adminTabBtn = document.getElementById('adminTabBtn');
+
+        if (state.user) {
+            navAuth.innerHTML = `<span style="font-size:14px; margin-right:10px;">Salut, ${state.user.name}</span>
+                                <button class="btn btn-secondary" onclick="logout()">Déconnexion</button>`;
+            if (state.user.name === 'Admin') {
+                adminComposer.classList.remove('hidden');
+                adminTabBtn.style.display = 'flex';
+            }
+        } else {
+            navAuth.innerHTML = `<button class="btn btn-primary" onclick="openModal('authModal')">Connexion</button>`;
+            adminComposer.classList.add('hidden');
+            adminTabBtn.style.display = 'none';
+        }
+    }
+
+    async function login() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPass').value;
+        const data = await api('/api/auth/login', 'POST', { email, password });
+        if (data.success) {
+            closeModal('authModal');
+            await checkAuth();
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    }
+
+    async function logout() {
+        await api('/api/auth/logout', 'POST');
+        state.user = null;
+        renderAuth();
+    }
+
+    async function loadSettings() {
+        const data = await api('/api/admin/settings');
+        state.settings = data;
+        document.getElementById('pageName').innerText = data.pageName || 'Goût Gueule';
+        document.getElementById('pageBio').innerText = data.bio || '';
+        document.getElementById('sidebarBio').innerText = data.bio || '';
+    }
+
+    async function loadPosts() {
+        const posts = await api('/api/posts');
+        state.posts = posts;
+        renderPosts();
+    }
+
+    function renderPosts() {
+        const container = document.getElementById('postsList');
+        if (state.posts.length === 0) {
+            container.innerHTML = `<p style="text-align:center; padding:40px;">Aucune publication pour le moment.</p>`;
+            return;
+        }
+        container.innerHTML = state.posts.map(post => `
+            <div class="card post-card">
+                <div class="post-header">
+                    <img src="https://via.placeholder.com/40">
+                    <div class="post-info">
+                        <div class="post-author">${state.settings.pageName || 'Goût Gueule'} ${post.pinned ? '📌' : ''}</div>
+                        <div class="post-meta">${new Date(post.createdAt).toLocaleString()} • 👁️ ${post.views || 0}</div>
+                    </div>
+                </div>
+                <div class="post-body">
+                    <h2 class="post-title">${post.title}</h2>
+                    <div class="post-content">${marked.parse(post.content)}</div>
+                    ${renderMedia(post.media)}
+                </div>
+                <div class="post-footer">
+                    <button onclick="react('${post.id}', 'like')">👍 J'aime (${Object.keys(post.reactions || {}).length})</button>
+                    <button onclick="toggleComments('${post.id}')">💬 Commenter (${(post.comments || []).length})</button>
+                    <button>↗️ Partager</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderMedia(media) {
+        if (!media || media.length === 0) return '';
+        return `<div class="post-media">
+            ${media.map(m => {
+                if (m.type === 'image') return `<img src="${m.url}">`;
+                if (m.type === 'video') return `<video src="${m.url}" controls></video>`;
+                return `<div class="btn btn-secondary">📎 ${m.name}</div>`;
+            }).join('')}
+        </div>`;
+    }
+
+    async function publishPost() {
+        const title = document.getElementById('postTitle').value;
+        const content = document.getElementById('postContent').value;
+        const files = document.getElementById('postFiles').files;
+        
+        const fd = new FormData();
+        fd.append('title', title);
+        fd.append('content', content);
+        for (let f of files) fd.append('files', f);
+
+        const res = await api('/api/admin/posts', 'POST', fd);
+        if (res.id) {
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postContent').value = '';
+            document.getElementById('postFiles').value = '';
+            await loadPosts();
+        }
+    }
+
+    async function loadStories() {
+        const stories = await api('/api/stories');
+        const container = document.getElementById('storiesList');
+        if (stories.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        container.style.display = 'flex';
+        container.innerHTML = stories.map(s => `
+            <div class="story-thumb" onclick="viewStory('${s.id}')">
+                ${s.mediaUrl ? `<img src="${s.mediaUrl}">` : `<div style="background:${s.bgColor}; height:100%;"></div>`}
+                <div class="story-text">${s.text}</div>
+            </div>
+        `).join('');
+    }
+
+    function setupWS() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        state.ws = new WebSocket(`${protocol}//${window.location.host}`);
+        const dot = document.getElementById('wsStatus');
+        
+        state.ws.onopen = () => dot.classList.add('online');
+        state.ws.onclose = () => {
+            dot.classList.remove('online');
+            setTimeout(setupWS, 5000);
+        };
+        state.ws.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            if (msg.type === 'new_post') loadPosts();
+            if (msg.type === 'new_story') loadStories();
+        };
+    }
+
+    function toggleTheme() {
+        const html = document.documentElement;
+        const theme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', theme);
+        localStorage.setItem('gg-theme', theme);
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // Init Theme
+    const savedTheme = localStorage.getItem('gg-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    async function showTab(tab) {
+        document.getElementById('feedTab').classList.add('hidden');
+        document.getElementById('adminTab').classList.add('hidden');
+        
+        if (tab === 'admin') {
+            document.getElementById('adminTab').classList.remove('hidden');
+            const stats = await api('/api/admin/stats');
+            const container = document.getElementById('adminStats');
+            container.innerHTML = Object.entries(stats).map(([k, v]) => `
+                <div style="background:var(--surface); padding:10px; border-radius:8px; text-align:center;">
+                    <div style="font-size:12px; color:var(--gris); text-transform:uppercase;">${k}</div>
+                    <div style="font-size:20px; font-weight:700;">${v}</div>
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('feedTab').classList.remove('hidden');
+        }
+    }
+
+    async function syncCMS(source) {
+        const config = prompt('Entrez l\'URL de votre WordPress (ex: https://monsite.com)');
+        if (!config) return;
+        const res = await api('/api/admin/cms/sync', 'POST', { 
+            source, 
+            config: { url: config, username: 'admin', appPassword: 'xxxx xxxx xxxx xxxx' } 
+        });
+        alert(res.success ? `Import réussi: ${res.count} articles` : `Erreur: ${res.error}`);
+        await loadPosts();
+    }
+
+    init();
+</script>
+
+</body>
+</html>
