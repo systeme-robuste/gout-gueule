@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: gout-gueule
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /var/lib/goutgueule/storage
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+    disk:
+      name: goutgueule-storage
+      mountPath: /var/lib/goutgueule/storage
+      sizeGB: 1
