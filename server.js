@@ -236,7 +236,34 @@ app.delete('/api/admin/posts/:id', isAdmin, (req, res) => {
 
 // --- REACTIONS & COMMENTS ---
 app.post('/api/posts/:id/react', isUser, (req, res) => {
-    // ... (existing reaction logic)
+    const post = db.posts.find(p => p.id === req.params.id && !p.deleted);
+    if (!post) return res.status(404).json({ error: 'Post non trouvé' });
+    const { emoji = 'like' } = req.body || {};
+    if (!post.reactions) post.reactions = {};
+    const userId = req.session.userId;
+    const current = post.reactions[userId];
+    if (current === emoji) {
+        // toggle off
+        delete post.reactions[userId];
+    } else {
+        post.reactions[userId] = emoji;
+    }
+    saveDb();
+    // Broadcast to all connected clients
+    broadcast({ type: 'reaction', postId: post.id, reactions: post.reactions });
+    // Build counts
+    const counts = {};
+    Object.values(post.reactions).forEach(e => { counts[e] = (counts[e] || 0) + 1; });
+    res.json({ success: true, reactions: post.reactions, counts, total: Object.keys(post.reactions).length });
+});
+
+app.post('/api/posts/:id/share', isUser, (req, res) => {
+    const post = db.posts.find(p => p.id === req.params.id && !p.deleted);
+    if (!post) return res.status(404).json({ error: 'Post non trouvé' });
+    post.shares = (post.shares || 0) + 1;
+    saveDb();
+    broadcast({ type: 'share', postId: post.id, shares: post.shares });
+    res.json({ success: true, shares: post.shares });
 });
 
 // Auto-reply logic (Omni-Cortex)
