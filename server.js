@@ -351,6 +351,11 @@ app.get('/api/settings', (req, res) => {
 app.post('/api/admin/settings', isAdmin, upload.single('file'), (req, res) => {
     // Body fields + optional file via multer
     const body = { ...req.body };
+    // Allow null/empty string to clear a key (only on explicit keys)
+    const clearable = ['logoUrl', 'coverUrl', 'category', 'location'];
+    clearable.forEach(k => {
+        if (body[k] === '' || body[k] === null) delete body[k];
+    });
     if (req.file) {
         body.logoUrl = `/uploads/${req.file.filename}`;
     }
