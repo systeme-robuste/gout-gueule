@@ -343,10 +343,36 @@ app.get('/api/admin/stats', isAdmin, (req, res) => {
     });
 });
 
-app.post('/api/admin/settings', isAdmin, (req, res) => {
-    db.settings = { ...db.settings, ...req.body };
+// Public endpoint to read page settings (logo, cover, bio)
+app.get('/api/settings', (req, res) => {
+    res.json(db.settings);
+});
+
+app.post('/api/admin/settings', isAdmin, upload.single('file'), (req, res) => {
+    // Body fields + optional file via multer
+    const body = { ...req.body };
+    if (req.file) {
+        body.logoUrl = `/uploads/${req.file.filename}`;
+    }
+    db.settings = { ...db.settings, ...body };
     saveDb();
-    res.json({ success: true });
+    res.json({ success: true, settings: db.settings });
+});
+
+// Upload just a logo
+app.post('/api/admin/settings/logo', isAdmin, upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file' });
+    db.settings.logoUrl = `/uploads/${req.file.filename}`;
+    saveDb();
+    res.json({ success: true, logoUrl: db.settings.logoUrl });
+});
+
+// Upload just a cover image
+app.post('/api/admin/settings/cover', isAdmin, upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file' });
+    db.settings.coverUrl = `/uploads/${req.file.filename}`;
+    saveDb();
+    res.json({ success: true, coverUrl: db.settings.coverUrl });
 });
 
 app.get('/api/admin/settings', isAdmin, (req, res) => res.json(db.settings));
