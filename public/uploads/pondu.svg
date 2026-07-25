@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <radialGradient id="bg3" cx="50%" cy="40%">
+      <stop offset="0%" stop-color="#C0392B"/>
+      <stop offset="100%" stop-color="#1A1A1A"/>
+    </radialGradient>
+    <linearGradient id="leaf" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#228B22"/>
+      <stop offset="100%" stop-color="#0B3D0B"/>
+    </linearGradient>
+    <linearGradient id="bowl2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8B4513"/>
+      <stop offset="100%" stop-color="#3D2817"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg3)"/>
+  <ellipse cx="400" cy="460" rx="290" ry="35" fill="#000" opacity="0.5"/>
+  <path d="M 140 270 Q 400 130 660 270 L 610 430 Q 400 480 190 430 Z" fill="url(#bowl2)" stroke="#1A1A1A" stroke-width="4"/>
+  <ellipse cx="400" cy="270" rx="245" ry="40" fill="url(#leaf)"/>
+  <ellipse cx="320" cy="250" rx="60" ry="25" fill="#2E8B57" opacity="0.7" transform="rotate(-15 320 250)"/>
+  <ellipse cx="480" cy="255" rx="65" ry="22" fill="#228B22" opacity="0.7" transform="rotate(10 480 255)"/>
+  <ellipse cx="400" cy="240" rx="70" ry="28" fill="#2E8B57" opacity="0.8" transform="rotate(-5 400 240)"/>
+  <circle cx="250" cy="265" r="8" fill="#FFD700" opacity="0.9"/>
+  <circle cx="550" cy="270" r="9" fill="#FFD700" opacity="0.9"/>
+  <circle cx="400" cy="225" r="10" fill="#FFD700" opacity="0.9"/>
+  <ellipse cx="200" cy="280" rx="20" ry="10" fill="#FF6347" opacity="0.8"/>
+  <ellipse cx="600" cy="285" rx="22" ry="11" fill="#FF6347" opacity="0.8"/>
+  <ellipse cx="350" cy="275" rx="15" ry="8" fill="#FFA500" opacity="0.6"/>
+  <ellipse cx="450" cy="270" rx="14" ry="7" fill="#FFA500" opacity="0.6"/>
+  <text x="400" y="80" font-family="Georgia, serif" font-size="34" font-weight="bold" fill="#FAF7F2" text-anchor="middle">PONDU</text>
+  <text x="400" y="105" font-family="Georgia, serif" font-size="13" fill="#FAF7F2" text-anchor="middle" opacity="0.85">feuilles de manioc • tradition kinoise</text>
+</svg>
