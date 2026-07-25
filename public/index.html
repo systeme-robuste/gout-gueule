@@ -114,6 +114,29 @@
         .post-footer { border-top: 1px solid var(--border); display: flex; padding: 5px; }
         .post-footer button { flex: 1; background: none; border: none; padding: 10px; color: var(--gris); font-weight: 600; cursor: pointer; border-radius: 4px; }
         .post-footer button:hover { background: var(--surface); color: var(--rouge); }
+        .post-footer button.active { color: var(--rouge); }
+
+        .post-content.collapsible { transition: max-height 0.3s ease; }
+
+        .see-more-btn { background: none; border: none; color: var(--rouge); font-weight: 700; cursor: pointer; padding: 5px 0; font-size: 13px; }
+        .see-more-btn:hover { text-decoration: underline; }
+
+        .comments-section { border-top: 1px solid var(--border); padding: 12px 15px; background: var(--surface); border-radius: 0 0 12px 12px; }
+        .comments-list { max-height: 300px; overflow-y: auto; margin-bottom: 10px; }
+        .comment { padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .comment:last-child { border-bottom: none; }
+        .comment p { margin: 4px 0; font-size: 14px; }
+        .comment-time { font-size: 11px; color: var(--gris); margin-left: 6px; }
+        .comment.admin-comment { background: var(--card); padding: 8px 10px; border-radius: 8px; border-left: 3px solid var(--rouge); }
+        .comment strong { font-size: 13px; }
+
+        .comment-composer { display: flex; gap: 8px; margin-top: 8px; }
+        .comment-composer input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--card); color: var(--text); font-size: 14px; outline: none; }
+        .comment-composer input:focus { border-color: var(--rouge); }
+        .comment-composer button { padding: 8px 16px; font-size: 13px; }
+
+        .post-header { display: flex; align-items: center; gap: 10px; }
+        .post-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--surface); }
 
         /* Stories */
         .stories-row { 
@@ -461,27 +484,203 @@
             container.innerHTML = `<p style="text-align:center; padding:40px;">Aucune publication pour le moment.</p>`;
             return;
         }
-        container.innerHTML = state.posts.map(post => `
-            <div class="card post-card">
+        container.innerHTML = state.posts.map(post => {
+            const contentHtml = marked.parse(post.content || '');
+            const reactionCount = Object.keys(post.reactions || {}).length;
+            const commentCount = (post.comments || []).length;
+            const userReaction = state.user ? (post.reactions || {})[state.user.id] : null;
+            return `
+            <div class="card post-card" data-post-id="${post.id}">
                 <div class="post-header">
-                    <img src="https://via.placeholder.com/40">
+                    <img src="${state.settings.logoUrl || 'https://via.placeholder.com/40'}" onerror="this.src='https://via.placeholder.com/40'">
                     <div class="post-info">
                         <div class="post-author">${state.settings.pageName || 'Goût Gueule'} ${post.pinned ? '📌' : ''}</div>
                         <div class="post-meta">${new Date(post.createdAt).toLocaleString()} • 👁️ ${post.views || 0}</div>
                     </div>
+                    ${state.user && state.user.name === 'Admin' ? `<button onclick="deletePost('${post.id}')" style="margin-left:auto; background:none; border:none; color:var(--gris); cursor:pointer; font-size:14px;">🗑️</button>` : ''}
                 </div>
                 <div class="post-body">
                     <h2 class="post-title">${post.title}</h2>
-                    <div class="post-content">${marked.parse(post.content)}</div>
+                    <div class="post-content collapsible" data-collapsed="true">${contentHtml}</div>
+                    <button class="see-more-btn" onclick="toggleSeeMore(this)" style="display:none;">Voir plus</button>
                     ${renderMedia(post.media)}
                 </div>
                 <div class="post-footer">
-                    <button onclick="react('${post.id}', 'like')">👍 J'aime (${Object.keys(post.reactions || {}).length})</button>
-                    <button onclick="toggleComments('${post.id}')">💬 Commenter (${(post.comments || []).length})</button>
-                    <button>↗️ Partager</button>
+                    <button class="action-btn ${userReaction ? 'active' : ''}" onclick="react('${post.id}', 'like')">
+                        ${userReaction === 'like' ? '❤️' : '👍'} J'aime <span class="count">(${reactionCount})</span>
+                    </button>
+                    <button class="action-btn" onclick="toggleComments('${post.id}')">
+                        💬 Commenter <span class="count">(${commentCount})</span>
+                    </button>
+                    <button class="action-btn" onclick="sharePost('${post.id}')">
+                        ↗️ Partager <span class="count">(${post.shares || 0})</span>
+                    </button>
+                </div>
+                <div id="comments-${post.id}" class="comments-section hidden">
+                    <div class="comments-list">
+                        ${(post.comments || []).map(c => `
+                            <div class="comment ${c.userId === 'ai-nexus' ? 'admin-comment' : ''}">
+                                <strong>${c.userName}</strong> <span class="comment-time">${new Date(c.createdAt).toLocaleString()}</span>
+                                <p>${c.content}</p>
+                            </div>
+                        `).join('')}
+                        ${commentCount === 0 ? '<p style="color:var(--gris); font-size:13px; padding:5px;">Aucun commentaire.</p>' : ''}
+                    </div>
+                    ${state.user ? `
+                    <div class="comment-composer">
+                        <input type="text" id="comment-input-${post.id}" placeholder="Écrivez un commentaire..." onkeydown="if(event.key==='Enter') addComment('${post.id}')">
+                        <button class="btn btn-primary" onclick="addComment('${post.id}')">Envoyer</button>
+                    </div>
+                    ` : `<p style="padding:10px; color:var(--gris); font-size:13px;"><a href="#" onclick="openModal('authModal'); return false;">Connectez-vous</a> pour commenter.</p>`}
                 </div>
             </div>
-        `).join('');
+        `}).join('');
+        // After rendering, wire up see-more logic
+        document.querySelectorAll('.post-content.collapsible').forEach(setupSeeMore);
+    }
+
+    // Setup "Voir plus" on long posts
+    function setupSeeMore(el) {
+        const btn = el.parentElement.querySelector('.see-more-btn');
+        if (!btn) return;
+        // Create a clone offscreen to measure full height
+        const clone = el.cloneNode(true);
+        clone.style.cssText = 'position:absolute; visibility:hidden; height:auto; max-height:none; width:' + el.offsetWidth + 'px;';
+        document.body.appendChild(clone);
+        const fullHeight = clone.scrollHeight;
+        document.body.removeChild(clone);
+        const maxCollapsed = 200;
+        if (fullHeight > maxCollapsed + 20) {
+            el.style.maxHeight = maxCollapsed + 'px';
+            el.style.overflow = 'hidden';
+            btn.style.display = 'inline-block';
+            btn.textContent = 'Voir plus';
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+
+    function toggleSeeMore(btn) {
+        const content = btn.parentElement.querySelector('.post-content.collapsible');
+        const collapsed = content.dataset.collapsed === 'true';
+        if (collapsed) {
+            content.style.maxHeight = 'none';
+            content.style.overflow = 'visible';
+            content.dataset.collapsed = 'false';
+            btn.textContent = 'Voir moins';
+        } else {
+            content.style.maxHeight = '200px';
+            content.style.overflow = 'hidden';
+            content.dataset.collapsed = 'true';
+            btn.textContent = 'Voir plus';
+        }
+    }
+
+    // --- Reactions ---
+    async function react(postId, emoji) {
+        if (!state.user) {
+            alert('Connectez-vous pour réagir');
+            openModal('authModal');
+            return;
+        }
+        const res = await fetch(`/api/posts/${postId}/react`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ emoji })
+        });
+        const data = await res.json();
+        if (data.success) {
+            const post = state.posts.find(p => p.id === postId);
+            if (post) post.reactions = data.reactions;
+            renderPosts();
+        } else {
+            alert('Erreur: ' + (data.error || 'inconnue'));
+        }
+    }
+
+    // --- Share ---
+    async function sharePost(postId) {
+        const post = state.posts.find(p => p.id === postId);
+        if (!post) return;
+        const url = `${window.location.origin}/#post-${postId}`;
+        // Try native share API first
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: post.title,
+                    text: (post.content || '').slice(0, 100) + '...',
+                    url
+                });
+            } catch (e) { /* user cancelled */ }
+        }
+        // Always bump counter (backend tracks even if user cancels)
+        const res = await fetch(`/api/posts/${postId}/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: '{}'
+        });
+        const data = await res.json();
+        if (data.success) {
+            post.shares = data.shares;
+        }
+        // Also copy to clipboard
+        try {
+            await navigator.clipboard.writeText(url);
+        } catch (e) { /* ignore */ }
+        renderPosts();
+    }
+
+    // --- Comments ---
+    async function toggleComments(postId) {
+        const section = document.getElementById('comments-' + postId);
+        section.classList.toggle('hidden');
+        if (!section.classList.contains('hidden')) {
+            const input = document.getElementById('comment-input-' + postId);
+            if (input) input.focus();
+        }
+    }
+
+    async function addComment(postId) {
+        const input = document.getElementById('comment-input-' + postId);
+        const content = input.value.trim();
+        if (!content) return;
+        const res = await fetch(`/api/posts/${postId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (data.id) {
+            input.value = '';
+            const post = state.posts.find(p => p.id === postId);
+            if (post) {
+                if (!post.comments) post.comments = [];
+                post.comments.push(data);
+            }
+            renderPosts();
+            // Re-open this post's comments section
+            document.getElementById('comments-' + postId).classList.remove('hidden');
+        } else {
+            alert('Erreur: ' + (data.error || 'inconnue'));
+        }
+    }
+
+    // --- Delete post (admin) ---
+    async function deletePost(postId) {
+        if (!confirm('Supprimer cette publication ?')) return;
+        const res = await fetch(`/api/admin/posts/${postId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (data.success) {
+            await loadPosts();
+        } else {
+            alert('Erreur: ' + (data.error || 'inconnue'));
+        }
     }
 
     function renderMedia(media) {
