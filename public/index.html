@@ -328,7 +328,7 @@
     }
 
     async function api(path, method = 'GET', body = null) {
-        const options = { method, headers: {} };
+        const options = { method, headers: {}, credentials: 'include' };
         if (body && !(body instanceof FormData)) {
             options.headers['Content-Type'] = 'application/json';
             options.body = JSON.stringify(body);
