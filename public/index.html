@@ -174,7 +174,7 @@
 </nav>
 
 <div class="container">
-    <div class="cover"></div>
+    <div class="cover" id="pageCover"></div>
     
     <div class="profile-wrap">
         <div class="profile-card">
@@ -217,6 +217,37 @@
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px;" id="adminStats">
                         <!-- Stats boxes -->
                     </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🎨 Personnalisation de la page</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="font-size:12px; color: var(--gris); font-weight:600;">Photo de profil (logo)</label>
+                            <div style="display:flex; gap:10px; align-items:center; margin:5px 0;">
+                                <img id="logoPreview" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--card);">
+                                <input type="file" id="logoFile" accept="image/*" style="flex:1;">
+                            </div>
+                            <button class="btn btn-secondary" onclick="uploadPageLogo()" style="margin-top:5px;">📤 Téléverser le logo</button>
+                        </div>
+                        <div>
+                            <label style="font-size:12px; color: var(--gris); font-weight:600;">Photo de couverture</label>
+                            <div style="margin:5px 0;">
+                                <img id="coverPreview" src="https://via.placeholder.com/300x100" style="width:100%; height:100px; object-fit:cover; border-radius:8px;">
+                                <input type="file" id="coverFile" accept="image/*" style="margin-top:5px; width:100%;">
+                            </div>
+                            <button class="btn btn-secondary" onclick="uploadPageCover()" style="margin-top:5px;">📤 Téléverser la couverture</button>
+                        </div>
+                    </div>
+                    <hr style="border:0; border-top:1px solid var(--border); margin: 15px 0;">
+                    <label style="font-size:12px; color: var(--gris); font-weight:600;">Nom de la page</label>
+                    <input type="text" id="settingsPageName" placeholder="Goût Gueule" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); margin:5px 0 10px;">
+                    <label style="font-size:12px; color: var(--gris); font-weight:600;">À propos (bio publique)</label>
+                    <textarea id="settingsBio" placeholder="Présentez votre page, votre histoire, votre passion..." rows="4" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); margin:5px 0 10px; resize:vertical;"></textarea>
+                    <label style="font-size:12px; color: var(--gris); font-weight:600;">Catégorie / Tagline</label>
+                    <input type="text" id="settingsCategory" placeholder="Gastronomie kinoise" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); margin:5px 0 10px;">
+                    <label style="font-size:12px; color: var(--gris); font-weight:600;">Localisation</label>
+                    <input type="text" id="settingsLocation" placeholder="Kinshasa, RDC" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); margin:5px 0 10px;">
+                    <button class="btn btn-primary" onclick="savePageSettings()">💾 Enregistrer les infos</button>
                 </div>
                 <div class="card">
                     <div class="card-title">Actions Rapides</div>
@@ -329,11 +360,93 @@
     }
 
     async function loadSettings() {
-        const data = await api('/api/admin/settings');
+        const data = await api('/api/settings');
         state.settings = data;
         document.getElementById('pageName').innerText = data.pageName || 'Goût Gueule';
         document.getElementById('pageBio').innerText = data.bio || '';
         document.getElementById('sidebarBio').innerText = data.bio || '';
+        if (data.logoUrl) document.getElementById('profileLogo').src = data.logoUrl;
+        if (data.coverUrl) {
+            const cover = document.querySelector('.cover');
+            if (cover) cover.style.backgroundImage = `url('${data.coverUrl}')`;
+        }
+        if (data.category) {
+            const existing = document.getElementById('pageCategory');
+            if (existing) existing.innerText = data.category;
+            else {
+                const catEl = document.createElement('div');
+                catEl.id = 'pageCategory';
+                catEl.style.cssText = 'font-size:12px; color: var(--gris); font-weight:500; margin-top:2px;';
+                catEl.innerText = data.category;
+                document.querySelector('.profile-content').insertBefore(catEl, document.querySelector('.profile-actions'));
+            }
+        }
+        if (data.location) {
+            let loc = document.getElementById('pageLocation');
+            if (!loc) {
+                loc = document.createElement('div');
+                loc.id = 'pageLocation';
+                loc.style.cssText = 'font-size:12px; color: var(--gris); margin-top:2px;';
+                document.querySelector('.profile-content').insertBefore(loc, document.querySelector('.profile-actions'));
+            }
+            loc.innerHTML = '📍 ' + data.location;
+        }
+    }
+
+    async function loadAdminSettingsForm() {
+        const data = await api('/api/admin/settings');
+        document.getElementById('settingsPageName').value = data.pageName || '';
+        document.getElementById('settingsBio').value = data.bio || '';
+        document.getElementById('settingsCategory').value = data.category || '';
+        document.getElementById('settingsLocation').value = data.location || '';
+        if (data.logoUrl) document.getElementById('logoPreview').src = data.logoUrl;
+        if (data.coverUrl) document.getElementById('coverPreview').src = data.coverUrl;
+    }
+
+    async function savePageSettings() {
+        const body = {
+            pageName: document.getElementById('settingsPageName').value,
+            bio: document.getElementById('settingsBio').value,
+            category: document.getElementById('settingsCategory').value,
+            location: document.getElementById('settingsLocation').value
+        };
+        const data = await api('/api/admin/settings', 'POST', body);
+        if (data.success) {
+            await loadSettings();
+            alert('✅ Page mise à jour avec succès');
+        }
+    }
+
+    async function uploadPageLogo() {
+        const fileInput = document.getElementById('logoFile');
+        if (!fileInput.files[0]) return alert('Sélectionnez d\'abord une image');
+        const fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        const res = await fetch('/api/admin/settings/logo', { method: 'POST', body: fd, credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('logoPreview').src = data.logoUrl + '?t=' + Date.now();
+            await loadSettings();
+            alert('✅ Logo mis à jour');
+        } else {
+            alert('❌ Erreur: ' + (data.error || 'inconnue'));
+        }
+    }
+
+    async function uploadPageCover() {
+        const fileInput = document.getElementById('coverFile');
+        if (!fileInput.files[0]) return alert('Sélectionnez d\'abord une image');
+        const fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        const res = await fetch('/api/admin/settings/cover', { method: 'POST', body: fd, credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('coverPreview').src = data.coverUrl + '?t=' + Date.now();
+            await loadSettings();
+            alert('✅ Couverture mise à jour');
+        } else {
+            alert('❌ Erreur: ' + (data.error || 'inconnue'));
+        }
     }
 
     async function loadPosts() {
@@ -462,6 +575,7 @@
                     <div style="font-size:20px; font-weight:700;">${v}</div>
                 </div>
             `).join('');
+            await loadAdminSettingsForm();
         } else {
             document.getElementById('feedTab').classList.remove('hidden');
         }
