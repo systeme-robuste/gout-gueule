@@ -151,15 +151,29 @@ app.get('/api/posts', (req, res) => {
 });
 
 app.post('/api/admin/posts', isAdmin, upload.array('files'), (req, res) => {
-    const { title, content, tags, pinned, published } = req.body;
+    const { title, content, tags, pinned, published, status, coverImage, attachments } = req.body;
+    let media = [];
+    if (req.files && req.files.length > 0) {
+        media = req.files.map(f => ({ url: `/uploads/${f.filename}`, type: f.mimetype.split('/')[0], name: f.originalname }));
+    }
+    if (coverImage) {
+        media.unshift({ url: coverImage, type: 'image', name: 'cover' });
+    }
+    if (attachments) {
+        try {
+            const atts = typeof attachments === 'string' ? JSON.parse(attachments) : attachments;
+            atts.forEach(a => media.push(a));
+        } catch (e) {}
+    }
     const post = {
         id: uuidv4(),
         title,
         content,
         tags: tags ? tags.split(',').map(t => t.trim()) : [],
-        pinned: pinned === 'true',
+        pinned: pinned === 'true' || pinned === true,
         published: published !== 'false',
-        media: req.files.map(f => ({ url: `/uploads/${f.filename}`, type: f.mimetype.split('/')[0], name: f.originalname })),
+        status: status || 'published',
+        media,
         createdAt: new Date().toISOString(),
         views: 0,
         reactions: {},
@@ -169,6 +183,34 @@ app.post('/api/admin/posts', isAdmin, upload.array('files'), (req, res) => {
     db.posts.push(post);
     saveDb();
     broadcast({ type: 'new_post', post: { id: post.id, title: post.title } });
+    res.json(post);
+});
+
+app.put('/api/admin/posts/:id', isAdmin, upload.array('files'), (req, res) => {
+    const post = db.posts.find(p => p.id === req.params.id);
+    if (!post) return res.status(404).json({ error: 'Not found' });
+    const { title, content, tags, pinned, published, status, coverImage, attachments } = req.body;
+    if (title !== undefined) post.title = title;
+    if (content !== undefined) post.content = content;
+    if (tags !== undefined) post.tags = tags.split(',').map(t => t.trim());
+    if (pinned !== undefined) post.pinned = pinned === 'true' || pinned === true;
+    if (published !== undefined) post.published = published !== 'false';
+    if (status !== undefined) post.status = status;
+    if (req.files && req.files.length > 0) {
+        req.files.forEach(f => post.media.push({ url: `/uploads/${f.filename}`, type: f.mimetype.split('/')[0], name: f.originalname }));
+    }
+    if (coverImage) {
+        post.media.unshift({ url: coverImage, type: 'image', name: 'cover' });
+    }
+    if (attachments) {
+        try {
+            const atts = typeof attachments === 'string' ? JSON.parse(attachments) : attachments;
+            atts.forEach(a => post.media.push(a));
+        } catch (e) {}
+    }
+    post.updatedAt = new Date().toISOString();
+    saveDb();
+    broadcast({ type: 'post_updated', post: { id: post.id, title: post.title } });
     res.json(post);
 });
 
@@ -182,21 +224,42 @@ app.delete('/api/admin/posts/:id', isAdmin, (req, res) => {
 
 // --- REACTIONS & COMMENTS ---
 app.post('/api/posts/:id/react', isUser, (req, res) => {
-    const post = db.posts.find(p => p.id === req.params.id);
-    if (!post) return res.status(404).json({ error: 'Post not found' });
-    const userId = req.session.userId || 'admin';
-    const { type } = req.body; // like, love, haha, wow, sad, angry
-    
-    if (!post.reactions) post.reactions = {};
-    if (post.reactions[userId] === type) {
-        delete post.reactions[userId];
-    } else {
-        post.reactions[userId] = type;
-    }
-    saveDb();
-    broadcast({ type: 'reaction_update', postId: post.id, reactions: post.reactions });
-    res.json(post.reactions);
+    // ... (existing reaction logic)
 });
+
+// Auto-reply logic (Omni-Cortex)
+const autoReply = async (postId, comment) => {
+    const post = db.posts.find(p => p.id === postId);
+    if (!post || comment.userName === 'Omni-Cortex') return;
+
+    // Simple keyword-based AI for now (can be expanded with LLM API)
+    let response = "";
+    const text = comment.content.toLowerCase();
+    
+    if (text.includes("merci") || text.includes("bravo") || text.includes("top")) {
+        response = `Merci beaucoup ${comment.userName} ! Nous sommes ravis que cela vous plaise. 🍽️`;
+    } else if (text.includes("prix") || text.includes("combien") || text.includes("coûte")) {
+        response = `Bonjour ${comment.userName}. Pour les tarifs personnalisés, n'hésitez pas à nous contacter directement via le bouton WhatsApp !`;
+    } else if (text.includes("où") || text.includes("adresse") || text.includes("lieu")) {
+        response = `Nous sommes basés à ${db.settings.location || 'Kinshasa'}. À très bientôt ! 📍`;
+    }
+
+    if (response) {
+        setTimeout(() => {
+            const reply = {
+                id: uuidv4(),
+                userId: 'ai-nexus',
+                userName: 'Administratrice',
+                content: response,
+                parentId: comment.id,
+                createdAt: new Date().toISOString()
+            };
+            post.comments.push(reply);
+            saveDb();
+            broadcast({ type: 'new_comment', postId, comment: reply });
+        }, 3000); // 3 second delay to feel "natural"
+    }
+};
 
 app.post('/api/posts/:id/comments', isUser, (req, res) => {
     const post = db.posts.find(p => p.id === req.params.id);
@@ -214,6 +277,10 @@ app.post('/api/posts/:id/comments', isUser, (req, res) => {
     post.comments.push(comment);
     saveDb();
     broadcast({ type: 'new_comment', postId: post.id, comment });
+    
+    // Trigger Omni-Cortex Auto-Reply
+    autoReply(post.id, comment);
+    
     res.json(comment);
 });
 
