@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <defs>
+    <radialGradient id="bg1" cx="50%" cy="50%">
+      <stop offset="0%" stop-color="#FAF7F2"/>
+      <stop offset="100%" stop-color="#1A1A1A"/>
+    </radialGradient>
+    <radialGradient id="bowl" cx="50%" cy="40%">
+      <stop offset="0%" stop-color="#F5E6D3"/>
+      <stop offset="100%" stop-color="#8B6F47"/>
+    </radialGradient>
+    <linearGradient id="soup" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#D2691E"/>
+      <stop offset="100%" stop-color="#5D2906"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg1)"/>
+  <ellipse cx="400" cy="450" rx="280" ry="40" fill="#000" opacity="0.4"/>
+  <path d="M 150 250 Q 400 100 650 250 L 600 420 Q 400 480 200 420 Z" fill="url(#bowl)" stroke="#3D2817" stroke-width="4"/>
+  <ellipse cx="400" cy="255" rx="230" ry="35" fill="url(#soup)"/>
+  <circle cx="350" cy="240" r="40" fill="#F5DEB3" opacity="0.9"/>
+  <circle cx="450" cy="245" r="38" fill="#F5DEB3" opacity="0.9"/>
+  <circle cx="400" cy="220" r="42" fill="#F5DEB3" opacity="0.9"/>
+  <ellipse cx="350" cy="240" rx="25" ry="15" fill="#E8C39E" opacity="0.6"/>
+  <ellipse cx="450" cy="245" rx="23" ry="14" fill="#E8C39E" opacity="0.6"/>
+  <ellipse cx="400" cy="220" rx="26" ry="16" fill="#E8C39E" opacity="0.6"/>
+  <path d="M 480 215 Q 510 210 520 195 Q 525 185 515 178" fill="none" stroke="#3D2817" stroke-width="2.5"/>
+  <ellipse cx="518" cy="180" rx="10" ry="6" fill="#C0392B" transform="rotate(-20 518 180)"/>
+  <text x="400" y="60" font-family="Georgia, serif" font-size="36" font-weight="bold" fill="#C0392B" text-anchor="middle">FUFU</text>
+  <text x="400" y="85" font-family="Georgia, serif" font-size="14" fill="#1A1A1A" text-anchor="middle" opacity="0.7">saveur ancestrale</text>
+</svg>
