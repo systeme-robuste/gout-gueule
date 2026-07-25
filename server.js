@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
 const CMS = require('./cms');
+const { marked } = require('marked');
 
 const app = express();
 const server = http.createServer(app);
@@ -54,6 +55,111 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
+
+// --- SEO-FRIENDLY POST PAGE (SSR) ---
+app.get('/post/:id/:slug?', (req, res) => {
+    const post = db.posts.find(p => p.id === req.params.id && !p.deleted);
+    if (!post) return res.status(404).send('<h1>Article introuvable</h1>');
+    const html = marked.parse(post.content || '');
+    const ogImage = (post.media && post.media[0] && post.media[0].url) || '/og-image.jpg';
+    const ogImageUrl = ogImage.startsWith('http') ? ogImage : `https://gout-gueule-fcvr.onrender.com${ogImage}`;
+    const description = (post.content || '').replace(/[#*`>\n\[\]]/g, ' ').substring(0, 160).trim();
+    const pageUrl = `https://gout-gueule-fcvr.onrender.com/post/${post.id}/${slugify(post.title)}`;
+    const fullTitle = `${post.title} | Goût Gueule`;
+
+    res.type('html').send(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(fullTitle)}</title>
+<meta name="description" content="${escapeHtml(description)}">
+<meta name="keywords" content="${(post.tags || []).join(', ')}, kinshasa, RDC, cuisine congolaise">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="${pageUrl}">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="${escapeHtml(fullTitle)}">
+<meta property="og:description" content="${escapeHtml(description)}">
+<meta property="og:url" content="${pageUrl}">
+<meta property="og:image" content="${ogImageUrl}">
+<meta property="og:site_name" content="Goût Gueule">
+<meta property="og:locale" content="fr_CD">
+<meta property="article:published_time" content="${post.createdAt}">
+<meta property="article:author" content="Goût Gueule">
+${(post.tags || []).map(t => `<meta property="article:tag" content="${escapeHtml(t)}">`).join('\n')}
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${escapeHtml(fullTitle)}">
+<meta name="twitter:description" content="${escapeHtml(description)}">
+<meta name="twitter:image" content="${ogImageUrl}">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": ${JSON.stringify(post.title)},
+  "description": ${JSON.stringify(description)},
+  "image": ${JSON.stringify(ogImageUrl)},
+  "datePublished": "${post.createdAt}",
+  "author": { "@type": "Organization", "name": "Goût Gueule" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Goût Gueule",
+    "logo": { "@type": "ImageObject", "url": "https://gout-gueule-fcvr.onrender.com/og-image.jpg" }
+  },
+  "mainEntityOfPage": "${pageUrl}"
+}
+</script>
+
+<style>
+body { font-family: 'Inter', -apple-system, sans-serif; max-width: 720px; margin: 0 auto; padding: 24px; background: #FAF7F2; color: #2C1810; line-height: 1.6; }
+.back { display: inline-block; color: #C0392B; text-decoration: none; font-weight: 600; margin-bottom: 20px; }
+h1 { font-family: 'Playfair Display', serif; font-size: 36px; margin: 12px 0; color: #C0392B; }
+.meta { color: #6B6B6B; font-size: 14px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #E8E3DC; }
+.meta .tag { display: inline-block; background: #FAF7F2; border: 1px solid #D4A853; color: #D4A853; padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-right: 6px; }
+img { max-width: 100%; height: auto; border-radius: 8px; margin: 16px 0; }
+blockquote { border-left: 4px solid #D4A853; padding-left: 16px; color: #6B6B6B; font-style: italic; margin: 16px 0; }
+h2 { font-family: 'Playfair Display', serif; color: #96241A; margin-top: 32px; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+th, td { border: 1px solid #E8E3DC; padding: 8px 12px; text-align: left; }
+th { background: #FAF7F2; font-weight: 700; }
+.footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #E8E3DC; text-align: center; color: #6B6B6B; font-size: 14px; }
+.footer a { color: #C0392B; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<a href="/" class="back">← Retour à Goût Gueule</a>
+<article>
+<h1>${escapeHtml(post.title)}</h1>
+<div class="meta">
+  <strong>Goût Gueule</strong> · ${new Date(post.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}
+  ${post.tags && post.tags.length ? '<br>' + post.tags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join('') : ''}
+</div>
+${html}
+</article>
+<div class="footer">
+  <p>Vous avez aimé cet article ? Partagez-le :</p>
+  <p>
+    <a href="https://wa.me/?text=${encodeURIComponent(post.title + ' — ' + pageUrl)}" target="_blank">WhatsApp</a> ·
+    <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}" target="_blank">Facebook</a> ·
+    <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(pageUrl)}" target="_blank">Twitter</a>
+  </p>
+  <p style="margin-top:24px;"><a href="/">← Découvrir plus d'articles sur Goût Gueule</a></p>
+</div>
+</body>
+</html>`);
+});
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 app.use(session({
     secret: process.env.SESSION_SECRET || 'gout-gueule-secret-key',
     resave: false,
@@ -133,6 +239,51 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 // --- POSTS ROUTES ---
+const slugify = (text) => {
+    return (text || '')
+        .toString()
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // retire accents
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .substring(0, 80);
+};
+
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain').send(`User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://gout-gueule-fcvr.onrender.com/sitemap.xml
+`);
+});
+
+app.get('/sitemap.xml', (req, res) => {
+    const base = 'https://gout-gueule-fcvr.onrender.com';
+    const posts = db.posts.filter(p => !p.deleted);
+    const urls = [
+        { loc: base + '/', priority: '1.0', changefreq: 'daily' },
+        ...posts.map(p => ({
+            loc: `${base}/post/${p.id}/${slugify(p.title)}`,
+            lastmod: p.updatedAt || p.createdAt,
+            priority: '0.8',
+            changefreq: 'weekly'
+        }))
+    ];
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url>
+    <loc>${u.loc}</loc>
+${u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>\n` : ''}    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+    res.type('application/xml').send(xml);
+});
+
 app.get('/api/posts', (req, res) => {
     let posts = db.posts.filter(p => !p.deleted).sort((a, b) => {
         if (a.pinned && !b.pinned) return -1;
