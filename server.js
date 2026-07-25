@@ -214,6 +214,18 @@ app.put('/api/admin/posts/:id', isAdmin, upload.array('files'), (req, res) => {
     res.json(post);
 });
 
+// Quick endpoint to update posts with media (for seeding)
+app.post('/api/admin/posts/:id/cover', isAdmin, (req, res) => {
+    const post = db.posts.find(p => p.id === req.params.id);
+    if (!post) return res.status(404).json({ error: 'Not found' });
+    const { coverImage } = req.body;
+    if (coverImage) {
+        post.media = [{ url: coverImage, type: 'image', name: 'cover' }];
+        saveDb();
+    }
+    res.json(post);
+});
+
 app.delete('/api/admin/posts/:id', isAdmin, (req, res) => {
     const post = db.posts.find(p => p.id === req.params.id);
     if (post) post.deleted = true;
