@@ -3,7 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goût Gueule 🍽️</title>
+
+    <!-- SEO de base -->
+    <title>Goût Gueule 🍽️ | Saveurs authentiques de Kinshasa</title>
+    <meta name="description" content="Goût Gueule — Le guide gourmand de Kinshasa. Découvrez les plats emblématiques de la RDC : fufu, pondu, poisson grillé, liboke. Recettes traditionnelles, restos et bonnes adresses de la capitale congolaise.">
+    <meta name="keywords" content="restaurant kinshasa, cuisine congolaise, plats traditionnels RDC, fufu, pondu, poisson grillé kinshasa, gastronomie kinshasa, recettes congolaises, liboke, madesu, RDC, Congo, guide culinaire kinshasa">
+    <meta name="author" content="Goût Gueule">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="French">
+    <meta name="geo.region" content="CD-KN">
+    <meta name="geo.placename" content="Kinshasa, République Démocratique du Congo">
+    <meta name="geo.position" content="-4.4419;15.2663">
+    <meta name="ICBM" content="-4.4419, 15.2663">
+    <link rel="canonical" href="https://gout-gueule-fcvr.onrender.com/">
+
+    <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Goût Gueule">
+    <meta property="og:title" content="Goût Gueule 🍽️ | Saveurs authentiques de Kinshasa">
+    <meta property="og:description" content="Le guide gourmand de Kinshasa. Plats traditionnels de la RDC, recettes authentiques et bonnes adresses de la capitale congolaise.">
+    <meta property="og:url" content="https://gout-gueule-fcvr.onrender.com/">
+    <meta property="og:image" content="https://gout-gueule-fcvr.onrender.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="fr_CD">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Goût Gueule 🍽️ | Saveurs authentiques de Kinshasa">
+    <meta name="twitter:description" content="Le guide gourmand de Kinshasa. Plats traditionnels de la RDC, recettes authentiques et bonnes adresses.">
+    <meta name="twitter:image" content="https://gout-gueule-fcvr.onrender.com/og-image.jpg">
+
+    <!-- Schema.org : Organization + Restaurant -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Restaurant",
+      "name": "Goût Gueule",
+      "image": "https://gout-gueule-fcvr.onrender.com/og-image.jpg",
+      "url": "https://gout-gueule-fcvr.onrender.com/",
+      "description": "Guide gourmand de Kinshasa — plats traditionnels de la RDC",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Kinshasa",
+        "addressCountry": "CD"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -4.4419,
+        "longitude": 15.2663
+      },
+      "servesCuisine": ["Congolese", "Central African"],
+      "priceRange": "$$"
+    }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
@@ -500,7 +554,7 @@
                     ${state.user && state.user.name === 'Admin' ? `<button onclick="deletePost('${post.id}')" style="margin-left:auto; background:none; border:none; color:var(--gris); cursor:pointer; font-size:14px;">🗑️</button>` : ''}
                 </div>
                 <div class="post-body">
-                    <h2 class="post-title">${post.title}</h2>
+                    <h2 class="post-title"><a href="/post/${post.id}" style="color:inherit; text-decoration:none;" onmouseover="this.style.color='var(--rouge)'" onmouseout="this.style.color='inherit'">${post.title}</a></h2>
                     <div class="post-content collapsible" data-collapsed="true">${contentHtml}</div>
                     <button class="see-more-btn" onclick="toggleSeeMore(this)" style="display:none;">Voir plus</button>
                     ${renderMedia(post.media)}
