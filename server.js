@@ -171,6 +171,19 @@ function escapeHtml(text) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
+
+// Parse tags: accepte JSON array ("[\"a\",\"b\"]") OU comma-separated ("a,b,c") OU string seule ("a")
+function parseTags(input) {
+    if (input === undefined || input === null || input === '') return [];
+    if (Array.isArray(input)) return input.map(String);
+    const s = String(input).trim();
+    if (!s) return [];
+    if (s.startsWith('[')) {
+        try { const arr = JSON.parse(s); return Array.isArray(arr) ? arr.map(String) : []; }
+        catch (e) { return []; }
+    }
+    return s.split(',').map(t => t.trim()).filter(Boolean);
+}
 app.use(session({
     secret: process.env.SESSION_SECRET || 'gout-gueule-secret-key',
     resave: false,
@@ -348,7 +361,7 @@ app.post('/api/admin/posts', isAdmin, upload.array('files'), (req, res) => {
         id: uuidv4(),
         title,
         content,
-        tags: tags ? tags.split(',').map(t => t.trim()) : [],
+        tags: parseTags(tags),
         pinned: pinned === 'true' || pinned === true,
         published: published !== 'false',
         status: status || 'published',
@@ -371,7 +384,7 @@ app.put('/api/admin/posts/:id', isAdmin, upload.array('files'), (req, res) => {
     const { title, content, tags, pinned, published, status, coverImage, attachments } = req.body;
     if (title !== undefined) post.title = title;
     if (content !== undefined) post.content = content;
-    if (tags !== undefined) post.tags = tags.split(',').map(t => t.trim());
+    if (tags !== undefined) post.tags = parseTags(tags);
     if (pinned !== undefined) post.pinned = pinned === 'true' || pinned === true;
     if (published !== undefined) post.published = published !== 'false';
     if (status !== undefined) post.status = status;
