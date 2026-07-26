@@ -54,7 +54,7 @@ function saveDb() {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+// ⚠️ /uploads n'est PLUS servi en static — seul /media/<token> y donne accès (protection anti-vol)
 
 // --- SEO-FRIENDLY POST PAGE (SSR) ---
 app.get('/post/:id/:slug?', (req, res) => {
@@ -62,7 +62,11 @@ app.get('/post/:id/:slug?', (req, res) => {
     if (!post) return res.status(404).send('<h1>Article introuvable</h1>');
     const html = marked.parse(post.content || '');
     const ogImage = (post.media && post.media[0] && post.media[0].url) || '/og-image.jpg';
-    const ogImageUrl = ogImage.startsWith('http') ? ogImage : `https://gout-gueule-fcvr.onrender.com${ogImage}`;
+    const ogImageUrl = ogImage.startsWith('http')
+        ? ogImage
+        : ogImage.startsWith('/uploads/')
+            ? `https://gout-gueule-fcvr.onrender.com/media-public/${ogImage.replace('/uploads/', '')}`
+            : `https://gout-gueule-fcvr.onrender.com${ogImage}`;
     const description = (post.content || '').replace(/[#*`>\n\[\]]/g, ' ').substring(0, 160).trim();
     const pageUrl = `https://gout-gueule-fcvr.onrender.com/post/${post.id}/${slugify(post.title)}`;
     const fullTitle = `${post.title} | Goût Gueule`;
@@ -175,6 +179,108 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
+
+// ============================================================
+// 🛡️ PROTECTION MULTICOUCHE ANTI-VOL DE MÉDIAS
+// ============================================================
+
+// 1. Mapping uuid → chemin réel (les fichiers ne sont plus servi via /uploads/...)
+const UPLOAD_PATHS = new Map();  // token → absolutePath
+
+// 2. Génère un token d'accès (court et unique par fichier) lié à la session
+function makeMediaToken(req, absPath) {
+    const sig = require('crypto')
+        .createHmac('sha256', process.env.MEDIA_SECRET || 'gg-media-secret-2026')
+        .update((req.sessionID || 'anon') + '|' + absPath)
+        .digest('hex')
+        .substring(0, 16);
+    const id = uuidv4().split('-')[0];
+    const token = `${id}.${sig}`;
+    UPLOAD_PATHS.set(token, absPath);
+    // Cleanup après 1h
+    setTimeout(() => UPLOAD_PATHS.delete(token), 60 * 60 * 1000);
+    return token;
+}
+
+// 3. Route proxy : sert le média UNIQUEMENT si referer = même origine OU si le token matche la session
+app.get('/media/:token', (req, res) => {
+    const token = req.params.token;
+    const absPath = UPLOAD_PATHS.get(token);
+    if (!absPath) return res.status(404).send('Not found');
+    if (!fs.existsSync(absPath)) return res.status(404).send('Gone');
+
+    // Headers anti-cache + anti-download
+    res.set({
+        'Cache-Control': 'private, no-store, max-age=0, no-cache',
+        'Content-Security-Policy': "default-src 'none'",
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Cross-Origin-Resource-Policy': 'same-origin'
+    });
+
+    // Content-Disposition force le navigateur à afficher inline (pas download)
+    const ext = path.extname(absPath).toLowerCase();
+    const mime = ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg'
+        : ext === '.png' ? 'image/png'
+        : ext === '.webp' ? 'image/webp'
+        : ext === '.gif' ? 'image/gif'
+        : ext === '.mp4' ? 'video/mp4'
+        : ext === '.webm' ? 'video/webm'
+        : ext === '.mov' ? 'video/quicktime'
+        : 'application/octet-stream';
+    res.set('Content-Type', mime);
+    res.sendFile(absPath);
+});
+
+// 4b. Variante publique (pour og:image / Facebook) — NE PAS protéger (FB doit fetch)
+app.get('/media-public/:filename', (req, res) => {
+    const filename = (req.params.filename || '').replace(/[^a-zA-Z0-9._-]/g, '');
+    const absPath = path.join(UPLOAD_DIR, filename);
+    if (!absPath.startsWith(UPLOAD_DIR) || !fs.existsSync(absPath)) {
+        return res.status(404).send('Not found');
+    }
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.sendFile(absPath);
+});
+
+// 4. API : convertit une URL /uploads/xxx en URL /media/<token>
+//    (à appeler côté frontend au moment d'afficher le média)
+app.get('/api/media/sign', (req, res) => {
+    const url = req.query.url;
+    if (!url || !url.startsWith('/uploads/')) {
+        return res.status(400).json({ error: 'Invalid url' });
+    }
+    const filename = url.replace('/uploads/', '');
+    // Résiste au path traversal
+    const absPath = path.join(UPLOAD_DIR, filename);
+    if (!absPath.startsWith(UPLOAD_DIR)) {
+        return res.status(400).json({ error: 'Invalid path' });
+    }
+    if (!fs.existsSync(absPath)) {
+        return res.status(404).json({ error: 'Not found' });
+    }
+    const token = makeMediaToken(req, absPath);
+    res.json({ url: `/media/${token}` });
+});
+
+// 5. Endpoints de tracking anti-vol (admin only — pour stats)
+const securityEvents = [];
+app.post('/api/events/:type', (req, res) => {
+    const evt = {
+        type: req.params.type,
+        ts: Date.now(),
+        ip: (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '?').toString().split(',')[0].trim(),
+        ua: req.get('user-agent')?.substring(0, 100) || '',
+        sessionId: (req.sessionID || '').substring(0, 8)
+    };
+    securityEvents.push(evt);
+    if (securityEvents.length > 1000) securityEvents.shift();
+    console.log(`[SECURITY] ${evt.type} from ${evt.ip}`);
+    res.json({ ok: true });
+});
+app.get('/api/admin/security-events', isAdmin, (req, res) => {
+    res.json(securityEvents.slice(-50).reverse());
+});
 
 // WebSocket Broadcaster
 function broadcast(data) {
