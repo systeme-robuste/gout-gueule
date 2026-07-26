@@ -56,6 +56,17 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
+// 🛡️ Module de protection médias (additif, fail-open)
+try {
+    require('./media-protection')(app, {
+        isAdmin: (req) => req.session && req.session.isAdmin,
+        uploadDir: UPLOAD_DIR,
+        sessionSecret: process.env.SESSION_SECRET || 'gg-fallback-secret'
+    });
+} catch (e) {
+    console.error('[media-protection] Module failed to load:', e.message);
+}
+
 // --- SEO-FRIENDLY POST PAGE (SSR) ---
 app.get('/post/:id/:slug?', (req, res) => {
     const post = db.posts.find(p => p.id === req.params.id && !p.deleted);
