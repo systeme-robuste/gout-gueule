@@ -386,20 +386,21 @@
 
             <div id="feedTab">
                 <div id="adminComposer" class="card hidden">
-                <div class="card-title">Publier quelque chose</div>
-                <input type="text" id="postTitle" placeholder="Titre de la publication">
-                <textarea id="postContent" placeholder="Quoi de neuf ? (Markdown supporté)" style="min-height: 120px;"></textarea>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <input type="file" id="postFiles" multiple style="width: auto; margin: 0;">
-                    <button class="btn btn-primary" onclick="publishPost()">Publier</button>
+                    <div class="card-title">Publier quelque chose</div>
+                    <input type="text" id="postTitle" placeholder="Titre de la publication">
+                    <textarea id="postContent" placeholder="Quoi de neuf ? (Markdown supporté)" style="min-height: 120px;"></textarea>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <input type="file" id="postFiles" multiple style="width: auto; margin: 0;">
+                        <button class="btn btn-primary" onclick="publishPost()">Publier</button>
+                    </div>
+                    <div id="publishStatus" style="margin-top:10px; font-size:13px; min-height:18px;"></div>
+                </div>
+                <div id="postsList">
+                    <p style="text-align: center; padding: 20px;">Chargement des publications...</p>
                 </div>
             </div>
-            <div id="postsList">
-                <p style="text-align: center; padding: 20px;">Chargement des publications...</p>
-            </div>
-        </main>
     </div>
-</div>
+</main>
 
 <!-- MODALS -->
 <div id="authModal" class="modal-overlay">
@@ -800,21 +801,45 @@
     }
 
     async function publishPost() {
-        const title = document.getElementById('postTitle').value;
-        const content = document.getElementById('postContent').value;
+        const title = document.getElementById('postTitle').value.trim();
+        const content = document.getElementById('postContent').value.trim();
         const files = document.getElementById('postFiles').files;
-        
+        const status = document.getElementById('publishStatus');
+
+        if (!title) {
+            status.innerHTML = '<span style="color:#e74c3c;">❌ Le titre est obligatoire</span>';
+            return;
+        }
+        status.innerHTML = '<span style="color:#999;">⏳ Publication en cours...</span>';
+
         const fd = new FormData();
         fd.append('title', title);
         fd.append('content', content);
+        fd.append('tags', '[]');  // tags par défaut vide (pas de tags UI pour l'instant)
+        fd.append('published', 'true');
         for (let f of files) fd.append('files', f);
 
-        const res = await api('/api/admin/posts', 'POST', fd);
-        if (res.id) {
-            document.getElementById('postTitle').value = '';
-            document.getElementById('postContent').value = '';
-            document.getElementById('postFiles').value = '';
-            await loadPosts();
+        try {
+            const res = await fetch('/api/admin/posts', {
+                method: 'POST',
+                body: fd,
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (res.ok && data.id) {
+                status.innerHTML = '<span style="color:#27ae60;">✅ Article publié !</span>';
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postContent').value = '';
+                document.getElementById('postFiles').value = '';
+                await loadPosts();
+                setTimeout(() => status.innerHTML = '', 3000);
+            } else {
+                status.innerHTML = '<span style="color:#e74c3c;">❌ Erreur: ' + (data.error || res.status) + '</span>';
+                console.error('publish failed', res.status, data);
+            }
+        } catch (e) {
+            status.innerHTML = '<span style="color:#e74c3c;">❌ Réseau: ' + e.message + '</span>';
+            console.error('publish exception', e);
         }
     }
 
