@@ -284,6 +284,23 @@ ${u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>\n` : ''}    <changefreq>${u.c
     res.type('application/xml').send(xml);
 });
 
+// 🛡️ ÉTAPE 1 : Tracking anti-vol (léger)
+const securityEvents = [];
+app.post('/api/events/:type', (req, res) => {
+    try {
+        const evt = {
+            type: String(req.params.type).substring(0, 32),
+            ts: Date.now(),
+            ip: String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '?').split(',')[0].trim().substring(0, 64),
+            ua: String(req.get('user-agent') || '').substring(0, 120)
+        };
+        securityEvents.push(evt);
+        if (securityEvents.length > 500) securityEvents.shift();
+        console.log('[SECURITY]', evt.type, evt.ip);
+    } catch(e) { /* never crash */ }
+    res.json({ ok: true });
+});
+
 app.get('/api/posts', (req, res) => {
     let posts = db.posts.filter(p => !p.deleted).sort((a, b) => {
         if (a.pinned && !b.pinned) return -1;
