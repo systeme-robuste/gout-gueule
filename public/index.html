@@ -116,7 +116,27 @@
         .ws-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
         .ws-dot.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
 
-        /* Cover & Profile */
+        /* 🛡️ Protection médias */
+    .protected-media { position: relative; display: inline-block; max-width: 100%; }
+    .protected-media img, .protected-media video {
+      -webkit-user-select: none; -moz-user-select: none; user-select: none;
+      -webkit-user-drag: none; -khtml-user-drag: none; -moz-user-drag: none;
+      -o-user-drag: none; user-drag: none;
+      pointer-events: auto;
+    }
+    .protected-media::after {
+      content: ""; position: absolute; inset: 0; z-index: 5;
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='50%' y='50%' fill='rgba(255,255,255,0.08)' font-size='14' font-family='sans-serif' text-anchor='middle' transform='rotate(-30 100 100)'>G\u00f4t Gueule \u00a9</text></svg>") repeat;
+      pointer-events: none; mix-blend-mode: overlay;
+    }
+    .visible-watermark {
+      position: absolute; bottom: 8px; right: 8px; z-index: 10;
+      background: rgba(0,0,0,0.5); color: white; padding: 3px 8px;
+      border-radius: 3px; font-size: 11px; font-weight: 600;
+      pointer-events: none;
+    }
+
+    /* Cover & Profile */
         .cover {
             height: 260px; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80');
             background-size: cover; background-position: center; border-radius: 0 0 12px 12px;
@@ -846,6 +866,142 @@
     }
 
     init();
+
+    // 🛡️ SYSTÈME DE PROTECTION MULTICOUCHE ANTI-VOL DE MÉDIAS
+    const _sign = (() => {
+        const cache = new Map();
+        return async (url) => {
+            if (!url || !url.startsWith('/uploads/')) return url;
+            if (cache.has(url)) return cache.get(url);
+            try {
+                const r = await fetch('/api/media/sign?url=' + encodeURIComponent(url), { credentials: 'include' });
+                const d = await r.json();
+                const signed = d.url || url;
+                cache.set(url, signed);
+                return signed;
+            } catch (e) {
+                return url;
+            }
+        };
+    })();
+
+    // 🛡️ Empêcher clic-droit sur tous les médias (photos, vidéos, logos)
+    document.addEventListener('contextmenu', (e) => {
+        const t = e.target;
+        if (t.tagName === 'IMG' || t.tagName === 'VIDEO' ||
+            t.closest('.post-media') || t.closest('.protected-media') ||
+            t.closest('.profile-logo') || t.closest('.post-header img')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // 🛡️ Empêcher le drag-and-drop des images vers le bureau
+    document.addEventListener('dragstart', (e) => {
+        if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // 🛡️ Empêcher la sélection sur les médias
+    document.addEventListener('selectstart', (e) => {
+        if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // 🛡️ Bloquer Ctrl+S / Ctrl+U / F12 / Ctrl+Shift+I / Ctrl+Shift+J (devtools shortcuts)
+    document.addEventListener('keydown', (e) => {
+        const blocked = (
+            (e.ctrlKey && (e.key === 's' || e.key === 'S' || e.key === 'u' || e.key === 'U')) ||
+            (e.key === 'F12') ||
+            (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) ||
+            // Mac : Cmd+S, Cmd+Option+U, Cmd+Option+I
+            (e.metaKey && (e.key === 's' || e.key === 'S')) ||
+            (e.metaKey && e.altKey && (e.key === 'u' || e.key === 'i'))
+        );
+        if (blocked) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    });
+
+    // 🛡️ Détecter l'ouverture des DevTools (heuristique)
+    let _devtoolsWarned = false;
+    setInterval(() => {
+        const wDiff = window.outerWidth - window.innerWidth;
+        const hDiff = window.outerHeight - window.innerHeight;
+        if ((wDiff > 160 || hDiff > 160) && !_devtoolsWarned) {
+            _devtoolsWarned = true;
+            // Log discret côté admin via une requête silencieuse
+            fetch('/api/events/devtools-detected', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ts: Date.now() })
+            }).catch(() => {});
+            // Notification console (silencieuse pour l'utilisateur mais visible si on ouvre la console)
+            console.log('%c🔒 Goût Gueule — Contenu protégé', 'color:#C0392B; font-size:20px; font-weight:bold;');
+            console.log('%cLe contenu de cette page (textes, photos, vidéos) est protégé par le droit d\'auteur. Toute reproduction non autorisée est interdite.', 'color:#666; font-size:14px;');
+        }
+    }, 1000);
+
+    // 🛡️ Empêcher l'enregistrement via le menu natif (Partage → Enregistrer)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // À chaque fois que la page perd le focus (alerte screenshot probable)
+            fetch('/api/events/screenshot-attempt', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ts: Date.now(), hidden: true })
+            }).catch(() => {});
+        }
+    });
+
+    // 🛡️ Wrapper : remplace les URLs /uploads/... dans le HTML par des URLs signées
+    const _originalRenderMedia = window.renderMedia;
+    if (typeof _originalRenderMedia === 'function') {
+        window.renderMedia = async function(media) {
+            if (!media || !media.length) return '';
+            const items = await Promise.all(media.map(async (m) => {
+                const signedUrl = await _sign(m.url);
+                if (m.type === 'image') return `<div class="protected-media"><img src="${signedUrl}" loading="lazy" alt="" onerror="this.style.opacity=0"><div class="visible-watermark">Goût Gueule</div></div>`;
+                if (m.type === 'video') return `<div class="protected-media"><video src="${signedUrl}" controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false"><div class="visible-watermark">Goût Gueule</div></video></div>`;
+                return '';
+            }));
+            return `<div class="post-media">${items.join('')}</div>`;
+        };
+    }
+
+    // 🛡️ Wrapper : toutes les <img> hors posts (logos, avatars, covers, posts header)
+    document.addEventListener('DOMContentLoaded', async () => {
+        const imgs = document.querySelectorAll('img[src^="/uploads/"]');
+        for (const img of imgs) {
+            const originalSrc = img.src;
+            img.src = await _sign(originalSrc);
+            img.setAttribute('draggable', 'false');
+            img.setAttribute('oncontextmenu', 'return false');
+        }
+    });
+
+    // 🛡️ Réécrire aussi dynamiquement quand de nouveaux posts arrivent
+    const _origLoadPosts = window.loadPosts;
+    if (typeof _origLoadPosts === 'function') {
+        window.loadPosts = async function(...args) {
+            await _origLoadPosts.apply(this, args);
+            document.querySelectorAll('img[src^="/uploads/"]').forEach(async (img) => {
+                const o = img.getAttribute('src');
+                if (o && o.startsWith('/uploads/')) {
+                    img.src = await _sign(o);
+                    img.setAttribute('draggable', 'false');
+                }
+            });
+        };
+    }
 </script>
 
 </body>
