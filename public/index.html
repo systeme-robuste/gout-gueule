@@ -136,6 +136,37 @@
       pointer-events: none;
     }
 
+    /* 🛡️ Protection médias */
+    img.protected, video.protected {
+        -webkit-user-select: none; -moz-user-select: none; user-select: none;
+        -webkit-user-drag: none; -khtml-user-drag: none; -moz-user-drag: none;
+        -o-user-drag: none; user-drag: none;
+        pointer-events: auto;
+    }
+    .protected-wrap {
+        position: relative; display: inline-block; max-width: 100%;
+    }
+    .protected-wrap::after {
+        content: ""; position: absolute; inset: 0; z-index: 5;
+        background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><text x='50%' y='50%' fill='rgba(255,255,255,0.07)' font-size='12' font-family='sans-serif' text-anchor='middle' transform='rotate(-30 90 90)'>G\u00f4t Gueule \u00a9</text></svg>") repeat;
+        pointer-events: none; mix-blend-mode: overlay;
+    }
+    .protected-watermark {
+        position: absolute; bottom: 6px; right: 6px; z-index: 10;
+        background: rgba(0,0,0,0.45); color: white; padding: 2px 6px;
+        border-radius: 3px; font-size: 10px; font-weight: 600;
+        pointer-events: none; letter-spacing: 0.5px;
+    }
+    .protected-blur {
+        position: absolute; inset: 0; backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 20; display: none; cursor: pointer;
+        background: rgba(0,0,0,0.5); color: white;
+        align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 600;
+    }
+    .protected-blur::before { content: "🔒 Cliquer pour révéler"; }
+
     /* Cover & Profile */
         .cover {
             height: 260px; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80');
@@ -761,8 +792,8 @@
         if (!media || media.length === 0) return '';
         return `<div class="post-media">
             ${media.map(m => {
-                if (m.type === 'image') return `<img src="${m.url}">`;
-                if (m.type === 'video') return `<video src="${m.url}" controls></video>`;
+                if (m.type === 'image') return `<div class="protected-wrap" data-sign-url="${m.url}"><img class="protected" src="${m.url}" loading="lazy" alt="" draggable="false" oncontextmenu="return false" referrerpolicy="no-referrer"><div class="protected-watermark">Goût Gueule</div></div>`;
+                if (m.type === 'video') return `<div class="protected-wrap" data-sign-url="${m.url}"><video class="protected" src="${m.url}" controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false" draggable="false"></video><div class="protected-watermark">Goût Gueule</div></div>`;
                 return `<div class="btn btn-secondary">📎 ${m.name}</div>`;
             }).join('')}
         </div>`;
@@ -962,46 +993,66 @@
         }
     });
 
-    // 🛡️ Wrapper : remplace les URLs /uploads/... dans le HTML par des URLs signées
-    const _originalRenderMedia = window.renderMedia;
-    if (typeof _originalRenderMedia === 'function') {
-        window.renderMedia = async function(media) {
-            if (!media || !media.length) return '';
-            const items = await Promise.all(media.map(async (m) => {
-                const signedUrl = await _sign(m.url);
-                if (m.type === 'image') return `<div class="protected-media"><img src="${signedUrl}" loading="lazy" alt="" onerror="this.style.opacity=0"><div class="visible-watermark">Goût Gueule</div></div>`;
-                if (m.type === 'video') return `<div class="protected-media"><video src="${signedUrl}" controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false"><div class="visible-watermark">Goût Gueule</div></video></div>`;
-                return '';
-            }));
-            return `<div class="post-media">${items.join('')}</div>`;
-        };
+    // 🛡️ Media signing — convertit /uploads/xxx en /media/<token> côté client
+    //    Le token est valide 1h et lié à la session
+    const _signCache = new Map();
+    async function signMediaUrl(url) {
+        if (!url || !url.startsWith('/uploads/')) return url;
+        if (_signCache.has(url)) return _signCache.get(url);
+        try {
+            const r = await fetch('/api/media/sign?url=' + encodeURIComponent(url), { credentials: 'include' });
+            if (!r.ok) return url;
+            const d = await r.json();
+            const signed = d.url || url;
+            _signCache.set(url, signed);
+            return signed;
+        } catch (e) { return url; }
     }
 
-    // 🛡️ Wrapper : toutes les <img> hors posts (logos, avatars, covers, posts header)
-    document.addEventListener('DOMContentLoaded', async () => {
-        const imgs = document.querySelectorAll('img[src^="/uploads/"]');
-        for (const img of imgs) {
-            const originalSrc = img.src;
-            img.src = await _sign(originalSrc);
-            img.setAttribute('draggable', 'false');
-            img.setAttribute('oncontextmenu', 'return false');
+    // 🛡️ Après le render, on signe tous les médias (images, vidéos, avatars, covers)
+    async function protectAllMedia() {
+        // Pour les <div class="protected-wrap" data-sign-url>
+        const wraps = document.querySelectorAll('.protected-wrap[data-sign-url]');
+        for (const wrap of wraps) {
+            if (wrap.dataset.signed === '1') continue;
+            const orig = wrap.getAttribute('data-sign-url');
+            const signed = await signMediaUrl(orig);
+            const media = wrap.querySelector('img, video');
+            if (media) {
+                media.src = signed;
+                wrap.dataset.signed = '1';
+            }
         }
-    });
+        // Pour les <img src="/uploads/..."> hors posts (logos, avatars, covers)
+        document.querySelectorAll('img[src^="/uploads/"]').forEach(async (img) => {
+            if (img.dataset.signed === '1') return;
+            const o = img.getAttribute('src');
+            if (o && o.startsWith('/uploads/')) {
+                img.src = await signMediaUrl(o);
+                img.setAttribute('draggable', 'false');
+                img.setAttribute('oncontextmenu', 'return false');
+                img.dataset.signed = '1';
+            }
+        });
+    }
 
-    // 🛡️ Réécrire aussi dynamiquement quand de nouveaux posts arrivent
-    const _origLoadPosts = window.loadPosts;
-    if (typeof _origLoadPosts === 'function') {
-        window.loadPosts = async function(...args) {
-            await _origLoadPosts.apply(this, args);
-            document.querySelectorAll('img[src^="/uploads/"]').forEach(async (img) => {
-                const o = img.getAttribute('src');
-                if (o && o.startsWith('/uploads/')) {
-                    img.src = await _sign(o);
-                    img.setAttribute('draggable', 'false');
-                }
-            });
+    // Lancer après chaque render de posts/stories
+    const _origLoadPosts = loadPosts;
+    loadPosts = async function(...args) {
+        const result = await _origLoadPosts.apply(this, args);
+        setTimeout(protectAllMedia, 100);
+        return result;
+    };
+    const _origLoadStories = typeof loadStories === 'function' ? loadStories : null;
+    if (_origLoadStories) {
+        loadStories = async function(...args) {
+            const result = await _origLoadStories.apply(this, args);
+            setTimeout(protectAllMedia, 100);
+            return result;
         };
     }
+    // Et au DOM ready
+    document.addEventListener('DOMContentLoaded', () => setTimeout(protectAllMedia, 200));
 </script>
 
 </body>
