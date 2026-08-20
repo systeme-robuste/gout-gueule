@@ -295,9 +295,6 @@
     <div class="nav-right">
         <div id="wsStatus" class="ws-dot" title="WebSocket Status"></div>
         <button class="btn btn-secondary" onclick="toggleTheme()" style="padding: 5px 10px;">🌙</button>
-        <div id="navAuth">
-            <button class="btn btn-primary" onclick="openModal('authModal')">Connexion</button>
-        </div>
     </div>
 </nav>
 
@@ -396,20 +393,7 @@
     </div>
 </main>
 
-<!-- MODALS -->
-<div id="authModal" class="modal-overlay">
-    <div class="modal-card">
-        <div class="modal-header">
-            <h3>Connexion</h3>
-            <button onclick="closeModal('authModal')" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
-        </div>
-        <input type="email" id="loginEmail" placeholder="Email">
-        <input type="password" id="loginPass" placeholder="Mot de passe">
-        <button class="btn btn-primary" style="width: 100%;" onclick="login()">Se connecter</button>
-        <p style="text-align: center; margin-top: 15px; font-size: 12px;">Email: admin@goutgueule.com | Pass: admin123</p>
-    </div>
-</div>
-
+<!-- Interface publique : aucune connexion ni CMS exposé -->
 <script>
     let state = {
         user: null,
@@ -420,7 +404,6 @@
     };
 
     async function init() {
-        await checkAuth();
         await loadSettings();
         await loadPosts();
         await loadStories();
