@@ -609,12 +609,7 @@
                         `).join('')}
                         ${commentCount === 0 ? '<p style="color:var(--gris); font-size:13px; padding:5px;">Aucun commentaire.</p>' : ''}
                     </div>
-                    ${state.user ? `
-                    <div class="comment-composer">
-                        <input type="text" id="comment-input-${post.id}" placeholder="Écrivez un commentaire..." onkeydown="if(event.key==='Enter') addComment('${post.id}')">
-                        <button class="btn btn-primary" onclick="addComment('${post.id}')">Envoyer</button>
-                    </div>
-                    ` : `<p style="padding:10px; color:var(--gris); font-size:13px;"><a href="#" onclick="openModal('authModal'); return false;">Connectez-vous</a> pour commenter.</p>`}
+                    <p style="padding:10px; color:var(--gris); font-size:13px;">Les commentaires seront bientôt disponibles.</p>
                 </div>
             </div>
         `}).join('');
@@ -662,8 +657,7 @@
     // --- Reactions ---
     async function react(postId, emoji) {
         if (!state.user) {
-            alert('Connectez-vous pour réagir');
-            openModal('authModal');
+            alert('Les réactions seront bientôt disponibles.');
             return;
         }
         const res = await fetch(`/api/posts/${postId}/react`, {
