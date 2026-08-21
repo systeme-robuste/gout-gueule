@@ -78,7 +78,8 @@ try {
     require('./media-protection')(app, {
         isAdmin: (req) => req.session && req.session.isAdmin,
         uploadDir: UPLOAD_DIR,
-        sessionSecret: process.env.SESSION_SECRET || 'gg-fallback-secret'
+        sessionSecret: process.env.SESSION_SECRET || 'gg-fallback-secret',
+        isPublishedMedia: (url) => db.posts.some(p => p.published && !p.deleted && (p.media || []).some(m => m.url === url))
     });
 } catch (e) {
     console.error('[media-protection] Module failed to load:', e.message);
