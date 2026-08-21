@@ -275,7 +275,9 @@ app.post('/api/auth/login', async (req, res) => {
     // Check Admin
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@goutgueule.com';
     const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
-    if (email === adminEmail && password === adminPass) {
+    const storedAdminHash = db.settings && db.settings.adminPasswordHash;
+    const adminPasswordOk = storedAdminHash ? await bcrypt.compare(password, storedAdminHash) : password === adminPass;
+    if (email === adminEmail && adminPasswordOk) {
         req.session.isAdmin = true;
         return res.json({ success: true, isAdmin: true, user: { name: 'Admin', email: adminEmail } });
     }
@@ -297,6 +299,18 @@ app.get('/api/auth/me', (req, res) => {
 
 app.post('/api/auth/logout', (req, res) => {
     req.session.destroy();
+    res.json({ success: true });
+});
+
+app.post('/api/admin/password', isAdmin, async (req, res) => {
+    const { currentPassword, newPassword } = req.body || {};
+    const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
+    const storedHash = db.settings && db.settings.adminPasswordHash;
+    const currentOk = storedHash ? await bcrypt.compare(currentPassword || '', storedHash) : currentPassword === adminPass;
+    if (!currentOk) return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
+    if (typeof newPassword !== 'string' || newPassword.length < 8) return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 8 caractères' });
+    db.settings.adminPasswordHash = await bcrypt.hash(newPassword, 12);
+    saveDb();
     res.json({ success: true });
 });
 
