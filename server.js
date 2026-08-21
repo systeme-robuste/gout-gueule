@@ -253,6 +253,12 @@ const isUser = (req, res, next) => {
     res.status(401).json({ error: 'Login required' });
 };
 
+// Les visiteurs peuvent réagir et partager sans compte ; leur identifiant reste dans leur session.
+const isEngagement = (req, res, next) => {
+    if (!req.session.visitorId) req.session.visitorId = 'visitor-' + uuidv4();
+    next();
+};
+
 // --- AUTH ROUTES ---
 app.post('/api/auth/register', async (req, res) => {
     const { name, email, password } = req.body;
@@ -459,12 +465,12 @@ app.delete('/api/admin/posts/:id', isAdmin, (req, res) => {
 });
 
 // --- REACTIONS & COMMENTS ---
-app.post('/api/posts/:id/react', isUser, (req, res) => {
+app.post('/api/posts/:id/react', isEngagement, (req, res) => {
     const post = db.posts.find(p => p.id === req.params.id && !p.deleted);
     if (!post) return res.status(404).json({ error: 'Post non trouvé' });
     const { emoji = 'like' } = req.body || {};
     if (!post.reactions) post.reactions = {};
-    const userId = req.session.userId;
+    const userId = req.session.userId || req.session.visitorId;
     const current = post.reactions[userId];
     if (current === emoji) {
         // toggle off
@@ -481,7 +487,7 @@ app.post('/api/posts/:id/react', isUser, (req, res) => {
     res.json({ success: true, reactions: post.reactions, counts, total: Object.keys(post.reactions).length });
 });
 
-app.post('/api/posts/:id/share', isUser, (req, res) => {
+app.post('/api/posts/:id/share', isEngagement, (req, res) => {
     const post = db.posts.find(p => p.id === req.params.id && !p.deleted);
     if (!post) return res.status(404).json({ error: 'Post non trouvé' });
     post.shares = (post.shares || 0) + 1;
