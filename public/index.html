@@ -238,6 +238,11 @@
         .post-footer button:hover { background:rgba(192,57,43,.08); color:var(--rouge); border-color:rgba(192,57,43,.3); transform:translateY(-1px); }
         .post-footer button.active { color:#fff; background:var(--rouge); border-color:var(--rouge); box-shadow:0 3px 10px rgba(192,57,43,.25); }
         .post-footer .count { font-size:12px; opacity:.8; }
+        .post-footer .reaction-like { flex:0 0 auto; min-width:66px; padding:8px 15px; display:inline-flex; justify-content:center; align-items:center; gap:8px; background:#ff160f; color:#fff; border:0; border-radius:999px; box-shadow:0 5px 14px rgba(255,22,15,.28); font-size:18px; }
+        .post-footer .reaction-like:hover { background:#df0d08; color:#fff; transform:translateY(-1px) scale(1.02); }
+        .post-footer .reaction-like .count { font-size:16px; font-weight:800; opacity:1; }
+        .post-footer .reaction-dislike { flex:0 0 auto; min-width:42px; padding:7px 9px; border:0; background:transparent; color:var(--text); font-size:24px; line-height:1; }
+        .post-footer .reaction-dislike:hover, .post-footer .reaction-dislike.active { background:var(--surface); color:var(--rouge); transform:translateY(-1px); }
 
         .post-content.collapsible { transition: max-height 0.3s ease; }
 
@@ -614,11 +619,11 @@
                     ${renderMedia(post.media)}
                 </div>
                 <div class="post-footer">
-                    <button class="action-btn ${liked ? 'active' : ''}" onclick="react('${post.id}', 'like')">
-                        ${liked ? '❤️' : '👍'} J’aime <span class="count">(${likeCount})</span>
+                    <button class="action-btn reaction-like ${liked ? 'active' : ''}" onclick="react('${post.id}', 'like')" aria-label="J’aime">
+                        👍 <span class="count">${likeCount}</span>
                     </button>
-                    <button class="action-btn ${disliked ? 'active' : ''}" onclick="react('${post.id}', 'dislike')">
-                        👎 <span class="count">(${dislikeCount})</span>
+                    <button class="action-btn reaction-dislike ${disliked ? 'active' : ''}" onclick="react('${post.id}', 'dislike')" aria-label="Je n’aime pas">
+                        👎
                     </button>
                     <button class="action-btn" onclick="toggleComments('${post.id}')">
                         💬 Commenter <span class="count">(${commentCount})</span>
