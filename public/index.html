@@ -201,6 +201,11 @@
 
         .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: var(--shadow); }
         .card-title { font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .about-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; background:transparent; color:var(--text); text-align:left; cursor:pointer; font:inherit; }
+        .about-chevron { font-size:22px; line-height:14px; transition:transform .2s ease; }
+        .about-toggle[aria-expanded="true"] .about-chevron { transform:rotate(180deg); }
+        .about-content { overflow:hidden; }
+        .about-content.hidden { display:none; }
 
         /* Post Card */
         .post-card { padding: 0; overflow: hidden; }
@@ -326,10 +331,14 @@
 
     <div class="main-layout">
         <aside class="sidebar">
-            <div class="card">
-                <div class="card-title">À propos</div>
-                <p id="sidebarBio" style="font-size: 14px;"></p>
-                <div id="socialLinks" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:10px;"></div>
+            <div class="card about-card">
+                <button class="card-title about-toggle" type="button" onclick="toggleAbout()" aria-expanded="false" aria-controls="aboutContent">
+                    <span>À propos</span><span id="aboutChevron" class="about-chevron" aria-hidden="true">⌄</span>
+                </button>
+                <div id="aboutContent" class="about-content hidden">
+                    <p id="sidebarBio" style="font-size: 14px;"></p>
+                    <div id="socialLinks" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:10px;"></div>
+                </div>
             </div>
             
         </aside>
@@ -853,6 +862,14 @@
             if (msg.type === 'new_post') loadPosts();
             if (msg.type === 'new_story') loadStories();
         };
+    }
+
+    function toggleAbout() {
+        const content = document.getElementById('aboutContent');
+        const toggle = document.querySelector('.about-toggle');
+        if (!content || !toggle) return;
+        const open = content.classList.toggle('hidden') === false;
+        toggle.setAttribute('aria-expanded', String(open));
     }
 
     function toggleTheme() {
