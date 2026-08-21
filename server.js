@@ -472,10 +472,8 @@ app.post('/api/posts/:id/react', isEngagement, (req, res) => {
     if (!post.reactions) post.reactions = {};
     const userId = req.session.userId || req.session.visitorId;
     const current = post.reactions[userId];
-    if (current === emoji) {
-        // toggle off
-        delete post.reactions[userId];
-    } else {
+    if (current !== emoji) {
+        // Une seule réaction par visiteur et par publication.
         post.reactions[userId] = emoji;
     }
     saveDb();
