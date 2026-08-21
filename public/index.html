@@ -246,6 +246,14 @@
         .post-footer .reaction-dislike:hover, .post-footer .reaction-dislike.active { background:var(--surface); color:var(--rouge); transform:translateY(-1px); }
         .share-button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
         .share-icon { display:inline-grid; place-items:center; width:22px; height:22px; border:1.5px solid currentColor; border-radius:50%; font-size:16px; font-weight:800; line-height:18px; }
+        .comment-button, .share-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+        .comment-icon { font-size:17px; }
+        .comments-section { padding:12px 15px 15px; border-top:1px solid var(--border); background:var(--surface); }
+        .comments-section.hidden { display:none; }
+        .comment { padding:9px 0; border-bottom:1px solid var(--border); }
+        .comment:last-child { border-bottom:0; }
+        .comment p { margin:4px 0 0; line-height:1.45; }
+        .comment-note { margin:10px 0 0; color:var(--gris); font-size:12px; }
 
         .post-content.collapsible { transition: max-height 0.3s ease; }
 
@@ -623,9 +631,18 @@
                     <button class="action-btn reaction-like ${liked ? 'active' : ''}" onclick="react('${post.id}', 'like')" aria-label="J’aime">
                         👍 <span class="count">${likeCount}</span>
                     </button>
+                    <button class="action-btn comment-button" onclick="toggleComments('${post.id}')" aria-label="Commenter">
+                        <span class="comment-icon">💬</span> Commenter <span class="count">(${commentCount})</span>
+                    </button>
                     <button class="action-btn share-button" onclick="sharePost('${post.id}')" aria-label="Partager">
                         <span class="share-icon">↗</span> Partager <span class="count">(${post.shares || 0})</span>
                     </button>
+                </div>
+                <div id="comments-${post.id}" class="comments-section hidden">
+                    <div class="comments-list">
+                        ${(post.comments || []).map(c => `<div class="comment"><strong>${c.userName || 'Visiteur'}</strong><p>${c.content || ''}</p></div>`).join('') || '<p class="muted">Aucun commentaire pour le moment.</p>'}
+                    </div>
+                    <p class="comment-note">💬 Les commentaires sont vérifiés avant publication.</p>
                 </div>
             </div>
         `}).join('');
