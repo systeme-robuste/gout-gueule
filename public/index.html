@@ -77,7 +77,7 @@
             --card: #FFFFFF;
             --border: var(--gris-clair);
             --shadow: 0 2px 12px rgba(44, 24, 16, 0.12);
-            --nav-h: 66px;
+            --nav-h: 44px;
         }
 
         [data-theme="dark"] {
@@ -107,7 +107,7 @@
 
         /* Navigation */
         .brand { display:flex; align-items:center; gap:8px; font-weight:800; }
-        .brand-logo { width:64px; height:64px; object-fit:contain; border-radius:0; background:transparent; }
+        .brand-logo { width:64px; height:64px; flex-shrink:0; object-fit:contain; border-radius:0; background:transparent; margin:-10px 0; position:relative; z-index:2; }
         nav {
             position: sticky; top: 0; z-index: 1000;
             background: var(--rouge); height: var(--nav-h);
