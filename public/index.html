@@ -597,7 +597,6 @@
             const commentCount = (post.comments || []).length;
             const liked = localStorage.getItem('gg-like-' + post.id) === '1';
             const disliked = localStorage.getItem('gg-dislike-' + post.id) === '1';
-            const saved = localStorage.getItem('gg-save-' + post.id) === '1';
             return `
             <div class="card post-card" data-post-id="${post.id}">
                 <div class="post-header">
@@ -626,9 +625,6 @@
                     </button>
                     <button class="action-btn" onclick="sharePost('${post.id}')">
                         ↗️ Partager <span class="count">(${post.shares || 0})</span>
-                    </button>
-                    <button class="action-btn ${saved ? 'active' : ''}" onclick="toggleSave('${post.id}')">
-                        ${saved ? '🔖' : '📑'} Enregistrer
                     </button>
                 </div>
                 <div id="comments-${post.id}" class="comments-section hidden">
@@ -706,12 +702,6 @@
         } else {
             alert('Erreur: ' + (data.error || 'inconnue'));
         }
-    }
-
-    function toggleSave(postId) {
-        const key = 'gg-save-' + postId;
-        localStorage.setItem(key, localStorage.getItem(key) === '1' ? '0' : '1');
-        renderPosts();
     }
 
     // --- Share ---
