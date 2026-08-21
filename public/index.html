@@ -601,10 +601,8 @@
             const contentHtml = marked.parse(post.content || '');
             const reactions = Object.values(post.reactions || {});
             const likeCount = reactions.filter(r => r === 'like').length;
-            const dislikeCount = reactions.filter(r => r === 'dislike').length;
             const commentCount = (post.comments || []).length;
             const liked = localStorage.getItem('gg-like-' + post.id) === '1';
-            const disliked = localStorage.getItem('gg-dislike-' + post.id) === '1';
             return `
             <div class="card post-card" data-post-id="${post.id}">
                 <div class="post-header">
@@ -624,9 +622,6 @@
                 <div class="post-footer">
                     <button class="action-btn reaction-like ${liked ? 'active' : ''}" onclick="react('${post.id}', 'like')" aria-label="J’aime">
                         👍 <span class="count">${likeCount}</span>
-                    </button>
-                    <button class="action-btn reaction-dislike ${disliked ? 'active' : ''}" onclick="react('${post.id}', 'dislike')" aria-label="Je n’aime pas">
-                        👎
                     </button>
                     <button class="action-btn share-button" onclick="sharePost('${post.id}')" aria-label="Partager">
                         <span class="share-icon">↗</span> Partager <span class="count">(${post.shares || 0})</span>
