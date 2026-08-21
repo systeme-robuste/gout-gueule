@@ -213,8 +213,13 @@
         .post-body { padding: 0 15px 15px; }
         .post-title { font-size: 20px; margin-bottom: 10px; }
         .post-content { font-size: 15px; }
-        .post-media { margin-top: 10px; display: grid; gap: 2px; }
-        .post-media img, .post-media video { width: 100%; border-radius: 4px; }
+        .post-media { margin-top: 10px; display: grid; gap: 10px; }
+        .post-media img, .post-media video { width: 100%; border-radius: 8px; }
+        .post-media audio { width: 100%; min-height: 42px; }
+        .media-pdf { width: 100%; height: 520px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+        .protected-circle { width: min(280px, 72vw) !important; height: min(280px, 72vw); margin: 0 auto; border-radius: 50% !important; object-fit: cover; display: block; }
+        .media-file { display:flex; align-items:center; gap:10px; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); }
+        .media-file a { color:var(--rouge); font-weight:600; text-decoration:none; }
         
         .post-footer { border-top: 1px solid var(--border); display: flex; padding: 5px; }
         .post-footer button { flex: 1; background: none; border: none; padding: 10px; color: var(--gris); font-weight: 600; cursor: pointer; border-radius: 4px; }
@@ -764,9 +769,12 @@
         if (!media || media.length === 0) return '';
         return `<div class="post-media">
             ${media.map(m => {
-                if (m.type === 'image') return `<div class="protected-wrap" data-sign-url="${m.url}"><img class="protected" src="${m.url}" loading="lazy" alt="" draggable="false" oncontextmenu="return false" referrerpolicy="no-referrer"><div class="protected-watermark">Goût Gueule</div></div>`;
-                if (m.type === 'video') return `<div class="protected-wrap" data-sign-url="${m.url}"><video class="protected" src="${m.url}" controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false" draggable="false"></video><div class="protected-watermark">Goût Gueule</div></div>`;
-                return `<div class="btn btn-secondary">📎 ${m.name}</div>`;
+                const position = m.position === 'left' ? 'float:left; width:48%; margin:0 14px 8px 0;' : m.position === 'right' ? 'float:right; width:48%; margin:0 0 8px 14px;' : m.position === 'full' ? 'width:100%;' : 'margin:0 auto;';
+                if (m.type === 'image') return `<div class="protected-wrap" data-sign-url="${m.url}" style="${position}"><img class="protected" src="${m.url}" loading="lazy" alt="${m.caption || ''}" draggable="false" oncontextmenu="return false" referrerpolicy="no-referrer"><div class="protected-watermark">Goût Gueule</div>${m.caption ? `<small>${m.caption}</small>` : ''}</div>`;
+                if (m.type === 'video' || m.type === 'video_note') return `<div class="protected-wrap" data-sign-url="${m.url}"><video class="protected ${m.type === 'video_note' ? 'protected-circle' : ''}" src="${m.url}" controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false"></video><div class="protected-watermark">Goût Gueule</div></div>`;
+                if (m.type === 'audio') return `<div class="protected-wrap" data-sign-url="${m.url}"><audio src="${m.url}" controls preload="metadata"></audio></div>`;
+                if (m.type === 'pdf') return `<div class="protected-wrap" data-sign-url="${m.url}"><iframe class="media-pdf" src="${m.url}" title="${m.name || 'PDF'}"></iframe><div class="media-file">📄 <a href="${m.url}" data-media-link target="_blank" rel="noopener">Ouvrir le PDF</a></div></div>`;
+                return `<div class="protected-wrap" data-sign-url="${m.url}"><div class="media-file">📎 <strong>${m.name || 'Fichier'}</strong><a href="${m.url}" data-media-link target="_blank" rel="noopener">Ouvrir / télécharger</a></div></div>`;
             }).join('')}
         </div>`;
     }
@@ -1013,11 +1021,11 @@
             if (wrap.dataset.signed === '1') continue;
             const orig = wrap.getAttribute('data-sign-url');
             const signed = await signMediaUrl(orig);
-            const media = wrap.querySelector('img, video');
-            if (media) {
-                media.src = signed;
-                wrap.dataset.signed = '1';
-            }
+            const media = wrap.querySelector('img, video, audio, iframe');
+            const link = wrap.querySelector('[data-media-link]');
+            if (media) media.src = signed;
+            if (link) link.href = signed;
+            if (media || link) wrap.dataset.signed = '1';
         }
         // Pour les <img src="/uploads/..."> hors posts (logos, avatars, covers)
         document.querySelectorAll('img[src^="/uploads/"]').forEach(async (img) => {
