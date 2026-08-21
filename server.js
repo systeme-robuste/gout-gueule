@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const CMS = require('./cms');
 const { marked } = require('marked');
+const TelegramBot = require('./telegram-bot');
 
 const app = express();
 const server = http.createServer(app);
@@ -55,6 +56,22 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
+
+// Telegram : webhook privé, commandes réservées à TELEGRAM_ADMIN_ID
+const telegramBot = process.env.TELEGRAM_BOT_TOKEN ? TelegramBot(process.env.TELEGRAM_BOT_TOKEN) : null;
+app.post('/api/telegram/webhook', async (req, res) => {
+    const expected = process.env.TELEGRAM_WEBHOOK_SECRET;
+    if (expected && req.get('x-telegram-bot-api-secret-token') !== expected) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    res.sendStatus(200);
+    if (!telegramBot) return;
+    try {
+        await telegramBot.handle(req.body, { db, saveDb, uploadDir: UPLOAD_DIR, broadcast });
+    } catch (error) {
+        console.error('[telegram] webhook error:', error.message);
+    }
+});
 
 // 🛡️ Module de protection médias (additif, fail-open)
 try {
