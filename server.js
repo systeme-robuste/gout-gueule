@@ -13,6 +13,7 @@ const { marked } = require('marked');
 const TelegramBot = require('./telegram-bot');
 
 const app = express();
+app.set('trust proxy', 1); // Render est derrière un proxy HTTPS
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
