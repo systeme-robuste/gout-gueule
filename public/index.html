@@ -233,10 +233,11 @@
         .media-file { display:flex; align-items:center; gap:10px; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); }
         .media-file a { color:var(--rouge); font-weight:600; text-decoration:none; }
         
-        .post-footer { border-top: 1px solid var(--border); display: flex; padding: 5px; }
-        .post-footer button { flex: 1; background: none; border: none; padding: 10px; color: var(--gris); font-weight: 600; cursor: pointer; border-radius: 4px; }
-        .post-footer button:hover { background: var(--surface); color: var(--rouge); }
-        .post-footer button.active { color: var(--rouge); }
+        .post-footer { border-top: 1px solid var(--border); display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; background:linear-gradient(180deg,transparent,var(--surface)); }
+        .post-footer button { flex:1 1 auto; min-width:82px; background:var(--card); border:1px solid var(--border); padding:9px 12px; color:var(--gris); font-weight:650; cursor:pointer; border-radius:999px; transition:all .2s ease; }
+        .post-footer button:hover { background:rgba(192,57,43,.08); color:var(--rouge); border-color:rgba(192,57,43,.3); transform:translateY(-1px); }
+        .post-footer button.active { color:#fff; background:var(--rouge); border-color:var(--rouge); box-shadow:0 3px 10px rgba(192,57,43,.25); }
+        .post-footer .count { font-size:12px; opacity:.8; }
 
         .post-content.collapsible { transition: max-height 0.3s ease; }
 
@@ -590,9 +591,13 @@
         }
         container.innerHTML = state.posts.map(post => {
             const contentHtml = marked.parse(post.content || '');
-            const reactionCount = Object.keys(post.reactions || {}).length;
+            const reactions = Object.values(post.reactions || {});
+            const likeCount = reactions.filter(r => r === 'like').length;
+            const dislikeCount = reactions.filter(r => r === 'dislike').length;
             const commentCount = (post.comments || []).length;
-            const userReaction = state.user ? (post.reactions || {})[state.user.id] : null;
+            const liked = localStorage.getItem('gg-like-' + post.id) === '1';
+            const disliked = localStorage.getItem('gg-dislike-' + post.id) === '1';
+            const saved = localStorage.getItem('gg-save-' + post.id) === '1';
             return `
             <div class="card post-card" data-post-id="${post.id}">
                 <div class="post-header">
@@ -610,14 +615,20 @@
                     ${renderMedia(post.media)}
                 </div>
                 <div class="post-footer">
-                    <button class="action-btn ${userReaction ? 'active' : ''}" onclick="react('${post.id}', 'like')">
-                        ${userReaction === 'like' ? '❤️' : '👍'} J'aime <span class="count">(${reactionCount})</span>
+                    <button class="action-btn ${liked ? 'active' : ''}" onclick="react('${post.id}', 'like')">
+                        ${liked ? '❤️' : '👍'} J’aime <span class="count">(${likeCount})</span>
+                    </button>
+                    <button class="action-btn ${disliked ? 'active' : ''}" onclick="react('${post.id}', 'dislike')">
+                        👎 <span class="count">(${dislikeCount})</span>
                     </button>
                     <button class="action-btn" onclick="toggleComments('${post.id}')">
                         💬 Commenter <span class="count">(${commentCount})</span>
                     </button>
                     <button class="action-btn" onclick="sharePost('${post.id}')">
                         ↗️ Partager <span class="count">(${post.shares || 0})</span>
+                    </button>
+                    <button class="action-btn ${saved ? 'active' : ''}" onclick="toggleSave('${post.id}')">
+                        ${saved ? '🔖' : '📑'} Enregistrer
                     </button>
                 </div>
                 <div id="comments-${post.id}" class="comments-section hidden">
@@ -677,10 +688,6 @@
 
     // --- Reactions ---
     async function react(postId, emoji) {
-        if (!state.user) {
-            alert('Les réactions seront bientôt disponibles.');
-            return;
-        }
         const res = await fetch(`/api/posts/${postId}/react`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -689,12 +696,22 @@
         });
         const data = await res.json();
         if (data.success) {
+            const key = 'gg-' + emoji + '-' + postId;
+            const wasActive = localStorage.getItem(key) === '1';
+            localStorage.setItem(key, wasActive ? '0' : '1');
+            if (!wasActive) localStorage.setItem('gg-' + (emoji === 'like' ? 'dislike' : 'like') + '-' + postId, '0');
             const post = state.posts.find(p => p.id === postId);
             if (post) post.reactions = data.reactions;
             renderPosts();
         } else {
             alert('Erreur: ' + (data.error || 'inconnue'));
         }
+    }
+
+    function toggleSave(postId) {
+        const key = 'gg-save-' + postId;
+        localStorage.setItem(key, localStorage.getItem(key) === '1' ? '0' : '1');
+        renderPosts();
     }
 
     // --- Share ---
