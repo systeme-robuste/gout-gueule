@@ -201,11 +201,18 @@
 
         .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: var(--shadow); }
         .card-title { font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .about-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; background:transparent; color:var(--text); text-align:left; cursor:pointer; font:inherit; }
-        .about-chevron { font-size:22px; line-height:14px; transition:transform .2s ease; }
-        .about-toggle[aria-expanded="true"] .about-chevron { transform:rotate(180deg); }
-        .about-content { overflow:hidden; }
+        .about-card { padding:0; overflow:hidden; border:1px solid var(--border); background:var(--card); }
+        .about-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; background:linear-gradient(135deg, rgba(192,57,43,.08), transparent); color:var(--text); text-align:left; cursor:pointer; font:inherit; margin:0; padding:16px; border:0; border-bottom:1px solid transparent; transition:background .2s ease,border-color .2s ease; }
+        .about-toggle:hover { background:linear-gradient(135deg, rgba(192,57,43,.16), rgba(192,57,43,.03)); }
+        .about-toggle span:first-child { display:flex; align-items:center; gap:9px; font-size:15px; letter-spacing:.2px; }
+        .about-toggle span:first-child::before { content:'✦'; color:var(--rouge); font-size:13px; }
+        .about-chevron { width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--border); border-radius:50%; color:var(--rouge); font-size:20px; line-height:14px; transition:transform .25s ease,background .2s ease; }
+        .about-toggle[aria-expanded="true"] { border-bottom-color:var(--border); }
+        .about-toggle[aria-expanded="true"] .about-chevron { transform:rotate(180deg); background:var(--rouge); color:#fff; border-color:var(--rouge); }
+        .about-content { overflow:hidden; padding:0 16px 16px; animation:aboutReveal .25s ease; }
         .about-content.hidden { display:none; }
+        .about-content p { line-height:1.65; margin:14px 0 0; }
+        @keyframes aboutReveal { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
 
         /* Post Card */
         .post-card { padding: 0; overflow: hidden; }
