@@ -21,13 +21,14 @@ module.exports = function installMediaProtection(app, opts) {
     // Map en mémoire : token -> absolutePath
     const tokenMap = new Map();
 
-    // Cleanup auto toutes les 10 minutes
+    // Les URLs signées sont valables 15 minutes maximum.
+    const TOKEN_TTL = 15 * 60 * 1000;
     setInterval(() => {
         const now = Date.now();
         for (const [token, info] of tokenMap.entries()) {
-            if (now - info.ts > 60 * 60 * 1000) tokenMap.delete(token);
+            if (now >= info.expiresAt) tokenMap.delete(token);
         }
-    }, 10 * 60 * 1000).unref();
+    }, 5 * 60 * 1000).unref();
 
     function makeToken(absPath, sessionId) {
         const sig = crypto.createHmac('sha256', SESSION_SECRET)
@@ -36,7 +37,7 @@ module.exports = function installMediaProtection(app, opts) {
             .substring(0, 12);
         const id = crypto.randomBytes(4).toString('hex');
         const token = id + sig;
-        tokenMap.set(token, { path: absPath, ts: Date.now() });
+        tokenMap.set(token, { path: absPath, ts: Date.now(), expiresAt: Date.now() + TOKEN_TTL });
         return token;
     }
 
@@ -46,6 +47,9 @@ module.exports = function installMediaProtection(app, opts) {
             const url = req.query.url;
             if (!url || typeof url !== 'string' || url.indexOf('/uploads/') !== 0) {
                 return res.status(400).json({ error: 'Invalid url' });
+            }
+            if (typeof opts.isPublishedMedia === 'function' && !opts.isPublishedMedia(url)) {
+                return res.status(403).json({ error: 'Media not attached to a published post' });
             }
             const filename = url.substring('/uploads/'.length);
             // Anti-path-traversal
@@ -67,24 +71,29 @@ module.exports = function installMediaProtection(app, opts) {
     // 2. Sert le média protégé (token-bound)
     app.get('/media/:token', (req, res) => {
         const info = tokenMap.get(req.params.token);
-        if (!info) return res.status(404).send('Not found');
+        if (!info || Date.now() >= info.expiresAt) {
+            tokenMap.delete(req.params.token);
+            return res.status(404).send('Expired');
+        }
         if (!fs.existsSync(info.path)) return res.status(404).send('Gone');
 
         const ext = path.extname(info.path).toLowerCase();
-        const mime = ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg'
-            : ext === '.png' ? 'image/png'
-            : ext === '.webp' ? 'image/webp'
-            : ext === '.gif' ? 'image/gif'
-            : ext === '.mp4' ? 'video/mp4'
-            : ext === '.webm' ? 'video/webm'
-            : ext === '.mov' ? 'video/quicktime'
-            : 'application/octet-stream';
+        const mimeMap = {
+            '.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp','.gif':'image/gif','.svg':'image/svg+xml',
+            '.mp4':'video/mp4','.webm':'video/webm','.mov':'video/quicktime','.avi':'video/x-msvideo','.mkv':'video/x-matroska',
+            '.mp3':'audio/mpeg','.m4a':'audio/mp4','.wav':'audio/wav','.ogg':'audio/ogg','.oga':'audio/ogg','.flac':'audio/flac',
+            '.pdf':'application/pdf','.txt':'text/plain','.doc':'application/msword','.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            '.xls':'application/vnd.ms-excel','.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            '.ppt':'application/vnd.ms-powerpoint','.pptx':'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        };
+        const mime = mimeMap[ext] || 'application/octet-stream';
 
         res.set({
             'Cache-Control': 'private, no-store, max-age=0',
             'Content-Type': mime,
             'X-Content-Type-Options': 'nosniff',
-            'Cross-Origin-Resource-Policy': 'same-origin'
+            'Cross-Origin-Resource-Policy': 'same-origin',
+            'Content-Disposition': mime === 'application/octet-stream' ? 'attachment' : 'inline'
         });
         res.sendFile(info.path);
     });
