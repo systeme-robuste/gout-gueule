@@ -106,6 +106,8 @@
         .container { max-width: 840px; margin: 0 auto; padding: 0 15px; }
 
         /* Navigation */
+        .brand { display:flex; align-items:center; gap:8px; font-weight:800; }
+        .brand-logo { width:34px; height:34px; object-fit:contain; border-radius:50%; background:#fff; }
         nav {
             position: sticky; top: 0; z-index: 1000;
             background: var(--rouge); height: var(--nav-h);
@@ -325,7 +327,7 @@
 <body>
 
 <nav>
-    <div class="brand">🍽️ Goût Gueule</div>
+    <div class="brand"><img src="/gout-gueule-logo.png" alt="Logo Goût Gueule" class="brand-logo"> <span>Goût Gueule</span></div>
     <div class="nav-right">
         <div id="wsStatus" class="ws-dot" title="WebSocket Status"></div>
         <button class="btn btn-secondary" onclick="toggleTheme()" style="padding: 5px 10px;">🌙</button>
@@ -337,7 +339,7 @@
     
     <div class="profile-wrap">
         <div class="profile-card">
-            <img src="https://via.placeholder.com/120" id="profileLogo" class="profile-logo">
+            <img src="/gout-gueule-logo.png" id="profileLogo" class="profile-logo" alt="Logo Goût Gueule">
             <div class="profile-content">
                 <h1 class="profile-name" id="pageName">Goût Gueule</h1>
                 <p class="profile-bio" id="pageBio">Chargement...</p>
