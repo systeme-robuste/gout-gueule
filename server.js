@@ -54,6 +54,19 @@ function saveDb() {
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// Autorise uniquement le CMS Goût Gueule hébergé sur Vercel à appeler l’API.
+app.use((req, res, next) => {
+    const origin = req.get('origin');
+    const allowed = process.env.CMS_ORIGIN || 'https://gout-gueule-cms.vercel.app';
+    if (origin === allowed) {
+        res.set('Access-Control-Allow-Origin', origin);
+        res.set('Access-Control-Allow-Credentials', 'true');
+        res.set('Access-Control-Allow-Headers', 'Content-Type');
+        res.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    }
+    if (req.method === 'OPTIONS') return res.sendStatus(origin === allowed ? 204 : 403);
+    next();
+});
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 
@@ -206,7 +219,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'gout-gueule-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'none', secure: process.env.NODE_ENV === 'production' }
 }));
 
 // Multer Storage
