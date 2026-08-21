@@ -238,11 +238,14 @@
         .post-footer button:hover { background:rgba(192,57,43,.08); color:var(--rouge); border-color:rgba(192,57,43,.3); transform:translateY(-1px); }
         .post-footer button.active { color:#fff; background:var(--rouge); border-color:var(--rouge); box-shadow:0 3px 10px rgba(192,57,43,.25); }
         .post-footer .count { font-size:12px; opacity:.8; }
-        .post-footer .reaction-like { flex:0 0 auto; min-width:66px; padding:8px 15px; display:inline-flex; justify-content:center; align-items:center; gap:8px; background:#ff160f; color:#fff; border:0; border-radius:999px; box-shadow:0 5px 14px rgba(255,22,15,.28); font-size:18px; }
-        .post-footer .reaction-like:hover { background:#df0d08; color:#fff; transform:translateY(-1px) scale(1.02); }
+        .post-footer .reaction-like { flex:0 0 auto; min-width:66px; padding:8px 15px; display:inline-flex; justify-content:center; align-items:center; gap:8px; background:var(--card); color:var(--gris); border:1px solid var(--border); border-radius:999px; box-shadow:none; font-size:18px; }
+        .post-footer .reaction-like:hover { background:rgba(255,22,15,.08); color:var(--rouge); border-color:rgba(255,22,15,.3); transform:translateY(-1px) scale(1.02); }
+        .post-footer .reaction-like.active { background:#ff160f; color:#fff; border-color:#ff160f; box-shadow:0 5px 14px rgba(255,22,15,.28); }
         .post-footer .reaction-like .count { font-size:16px; font-weight:800; opacity:1; }
         .post-footer .reaction-dislike { flex:0 0 auto; min-width:42px; padding:7px 9px; border:0; background:transparent; color:var(--text); font-size:24px; line-height:1; }
         .post-footer .reaction-dislike:hover, .post-footer .reaction-dislike.active { background:var(--surface); color:var(--rouge); transform:translateY(-1px); }
+        .share-button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+        .share-icon { display:inline-grid; place-items:center; width:22px; height:22px; border:1.5px solid currentColor; border-radius:50%; font-size:16px; font-weight:800; line-height:18px; }
 
         .post-content.collapsible { transition: max-height 0.3s ease; }
 
@@ -625,24 +628,9 @@
                     <button class="action-btn reaction-dislike ${disliked ? 'active' : ''}" onclick="react('${post.id}', 'dislike')" aria-label="Je n’aime pas">
                         👎
                     </button>
-                    <button class="action-btn" onclick="toggleComments('${post.id}')">
-                        💬 Commenter <span class="count">(${commentCount})</span>
+                    <button class="action-btn share-button" onclick="sharePost('${post.id}')" aria-label="Partager">
+                        <span class="share-icon">↗</span> Partager <span class="count">(${post.shares || 0})</span>
                     </button>
-                    <button class="action-btn" onclick="sharePost('${post.id}')">
-                        ↗️ Partager <span class="count">(${post.shares || 0})</span>
-                    </button>
-                </div>
-                <div id="comments-${post.id}" class="comments-section hidden">
-                    <div class="comments-list">
-                        ${(post.comments || []).map(c => `
-                            <div class="comment ${c.userId === 'ai-nexus' ? 'admin-comment' : ''}">
-                                <strong>${c.userName}</strong> <span class="comment-time">${new Date(c.createdAt).toLocaleString()}</span>
-                                <p>${c.content}</p>
-                            </div>
-                        `).join('')}
-                        ${commentCount === 0 ? '<p style="color:var(--gris); font-size:13px; padding:5px;">Aucun commentaire.</p>' : ''}
-                    </div>
-                    <p style="padding:10px; color:var(--gris); font-size:13px;">Les commentaires seront bientôt disponibles.</p>
                 </div>
             </div>
         `}).join('');
@@ -689,6 +677,7 @@
 
     // --- Reactions ---
     async function react(postId, emoji) {
+        if (localStorage.getItem('gg-' + emoji + '-' + postId) === '1') return;
         const res = await fetch(`/api/posts/${postId}/react`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
