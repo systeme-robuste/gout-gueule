@@ -414,7 +414,9 @@ app.post('/api/admin/posts', isAdmin, upload.array('files'), (req, res) => {
     const { title, content, tags, pinned, published, status, coverImage, attachments } = req.body;
     let media = [];
     if (req.files && req.files.length > 0) {
-        media = req.files.map(f => ({ url: `/uploads/${f.filename}`, type: f.mimetype.split('/')[0], name: f.originalname }));
+        const position = ['left','right','full','center'].includes(req.body.mediaPosition) ? req.body.mediaPosition : 'center';
+        const size = Math.max(20, Math.min(90, parseInt(req.body.mediaSize, 10) || 48));
+        media = req.files.map(f => ({ url: `/uploads/${f.filename}`, type: f.mimetype.split('/')[0], name: f.originalname, position, size }));
     }
     if (coverImage) {
         media.unshift({ url: coverImage, type: 'image', name: 'cover' });
