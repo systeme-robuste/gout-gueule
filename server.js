@@ -118,6 +118,8 @@ try {
 app.get('/post/:id/:slug?', (req, res) => {
     const post = db.posts.find(p => p.id === req.params.id && !p.deleted);
     if (!post) return res.status(404).send('<h1>Article introuvable</h1>');
+    post.views = (post.views || 0) + 1;
+    saveDb();
     const html = marked.parse(post.content || '');
     const ogImage = (post.media && post.media[0] && post.media[0].url) || '/og-image.jpg';
     const ogImageUrl = ogImage.startsWith('http') ? ogImage : `https://gout-gueule-fcvr.onrender.com${ogImage}`;
