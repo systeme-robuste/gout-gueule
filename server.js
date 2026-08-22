@@ -28,33 +28,48 @@ if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // DB Initialization
 let db = {
-    users: [],
-    posts: [],
-    stories: [],
-    subscribers: [],
-    settings: {
-        pageName: 'Goût Gueule',
-        bio: 'Bienvenue sur Goût Gueule, votre destination gourmande.',
-        social: {},
-        smtp: {}
-    },
-    apiKeys: [],
-    cms_integrations: {}
+    users: [], posts: [], stories: [], subscribers: [],
+    settings: { pageName: 'Goût Gueule', bio: 'Bienvenue sur Goût Gueule, votre destination gourmande.', social: {}, smtp: {} },
+    apiKeys: [], cms_integrations: {}
 };
 
-if (fs.existsSync(DB_FILE)) {
-    db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-} else {
-    saveDb();
+// PostgreSQL est prioritaire ; data.json reste uniquement un filet de secours local.
+let pgPool = null;
+const postgresUrl = process.env.DATABASE_URL || process.env.SUPABASE_URL;
+try {
+    if (postgresUrl && postgresUrl.startsWith('postgres')) {
+        const { Pool } = require('pg');
+        pgPool = new Pool({ connectionString: postgresUrl, ssl: { rejectUnauthorized: false }, max: 5 });
+    }
+} catch (error) {
+    console.error('[database] PostgreSQL unavailable, local fallback active:', error.message);
 }
 
 function saveDb() {
+    if (pgPool) {
+        return pgPool.query('INSERT INTO app_state (id, state, updated_at) VALUES (1, $1::jsonb, NOW()) ON CONFLICT (id) DO UPDATE SET state = EXCLUDED.state, updated_at = NOW()', [JSON.stringify(db)]).catch(error => console.error('[database] save failed:', error.message));
+    }
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+}
+
+if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+else if (!pgPool) saveDb();
+
+let dbReady = Promise.resolve();
+if (pgPool) {
+    dbReady = (async () => {
+        await pgPool.query('CREATE TABLE IF NOT EXISTS app_state (id INTEGER PRIMARY KEY, state JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
+        const result = await pgPool.query('SELECT state FROM app_state WHERE id = 1');
+        if (result.rows[0]?.state) db = result.rows[0].state;
+        else await saveDb();
+        console.log('[database] PostgreSQL connected — persistent storage active');
+    })().catch(error => { console.error('[database] connection failed:', error.message); });
 }
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(async (req, res, next) => { await dbReady; next(); });
 // Autorise uniquement le CMS Goût Gueule hébergé sur Vercel à appeler l’API.
 app.use((req, res, next) => {
     const origin = req.get('origin');
