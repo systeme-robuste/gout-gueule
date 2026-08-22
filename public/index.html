@@ -815,7 +815,7 @@
         if (!media || media.length === 0) return '';
         return `<div class="post-media">
             ${media.map(m => {
-                const position = m.position === 'left' ? 'float:left; width:48%; margin:0 14px 8px 0;' : m.position === 'right' ? 'float:right; width:48%; margin:0 0 8px 14px;' : m.position === 'full' ? 'width:100%;' : 'margin:0 auto;';
+                const width = Math.max(20, Math.min(90, Number(m.size) || 48)); const position = m.position === 'left' ? `float:left; width:${width}%; margin:0 14px 8px 0;` : m.position === 'right' ? `float:right; width:${width}%; margin:0 0 8px 14px;` : m.position === 'full' ? 'width:100%;' : `width:${width}%; margin:0 auto;`;
                 if (m.type === 'image') return `<div class="protected-wrap" data-sign-url="${m.url}" style="${position}"><img class="protected" src="${m.url}" loading="lazy" alt="${m.caption || ''}" draggable="false" oncontextmenu="return false" referrerpolicy="no-referrer"><div class="protected-watermark">Goût Gueule</div>${m.caption ? `<small>${m.caption}</small>` : ''}</div>`;
                 if (m.type === 'video' || m.type === 'video_note') return `<div class="protected-wrap" data-sign-url="${m.url}"><video class="protected ${m.type === 'video_note' ? 'protected-circle' : ''}" src="${m.url}" controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false"></video><div class="protected-watermark">Goût Gueule</div></div>`;
                 if (m.type === 'audio') return `<div class="protected-wrap" data-sign-url="${m.url}"><audio src="${m.url}" controls preload="metadata"></audio></div>`;
