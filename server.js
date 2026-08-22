@@ -406,6 +406,7 @@ app.get('/api/posts', (req, res) => {
         posts = posts.filter(p => p.title.toLowerCase().includes(s) || p.content.toLowerCase().includes(s));
     }
     
+    posts = posts.map(p => ({ ...p, comments: (p.comments || []).filter(c => c.status !== 'pending_review' && c.status !== 'rejected') }));
     res.json(posts);
 });
 
@@ -561,23 +562,45 @@ app.post('/api/posts/:id/comments', isUser, (req, res) => {
     const post = db.posts.find(p => p.id === req.params.id);
     if (!post) return res.status(404).json({ error: 'Post not found' });
     const { content, parentId } = req.body;
+    const suspicious = /https?:\/\/|viagra|casino|crypto|bit\.ly|spam/i.test(String(content || ''));
     const comment = {
         id: uuidv4(),
         userId: req.session.userId || 'admin',
         userName: req.session.userName || 'Admin',
         content,
         parentId: parentId || null,
+        status: suspicious ? 'pending_review' : 'approved',
+        moderationReason: suspicious ? 'Contenu potentiellement promotionnel ou lien externe' : null,
         createdAt: new Date().toISOString()
     };
     if (!post.comments) post.comments = [];
     post.comments.push(comment);
     saveDb();
-    broadcast({ type: 'new_comment', postId: post.id, comment });
+    if (comment.status === 'approved') broadcast({ type: 'new_comment', postId: post.id, comment });
     
-    // Trigger Omni-Cortex Auto-Reply
-    autoReply(post.id, comment);
+    // Trigger Omni-Cortex Auto-Reply uniquement après approbation
+    if (comment.status === 'approved') autoReply(post.id, comment);
     
     res.json(comment);
+});
+
+app.get('/api/admin/comments/pending', isAdmin, (req, res) => {
+    const pending = [];
+    for (const post of db.posts) for (const comment of (post.comments || [])) if (comment.status === 'pending_review') pending.push({ ...comment, postId: post.id, postTitle: post.title });
+    res.json(pending);
+});
+app.post('/api/admin/comments/:id/moderate', isAdmin, (req, res) => {
+    const action = req.body?.action;
+    for (const post of db.posts) {
+        const comment = (post.comments || []).find(c => c.id === req.params.id);
+        if (comment) {
+            if (action === 'approve') { comment.status = 'approved'; delete comment.moderationReason; broadcast({ type: 'new_comment', postId: post.id, comment }); }
+            else if (action === 'reject') comment.status = 'rejected';
+            else return res.status(400).json({ error: 'Action invalide' });
+            saveDb(); return res.json({ success: true, comment });
+        }
+    }
+    res.status(404).json({ error: 'Commentaire introuvable' });
 });
 
 // --- STORIES ---
