@@ -19,7 +19,7 @@ function makeTelegram(botToken) {
     }
 
     function command(text) {
-        const match = String(text || '').match(/^\/(publier|brouillon|valider|supprimer|aide)(?:@[^\s]+)?\s*([\s\S]*)$/i);
+        const match = String(text || '').match(/^\/(publier|brouillon|valider|supprimer|aide|commentaires|valider_commentaire|modifier_commentaire|rejeter_commentaire)(?:@[^\s]+)?\s*([\s\S]*)$/i);
         return match ? { name: match[1].toLowerCase(), args: match[2].trim() } : null;
     }
 
@@ -29,17 +29,33 @@ function makeTelegram(botToken) {
         return { title, content: lines.join('\n').trim() };
     }
 
-    async function downloadPhoto(fileId, uploadDir) {
+    async function downloadFile(fileId, uploadDir, type, originalName) {
         const info = await api('getFile', { file_id: fileId });
         if (!info.ok || !info.result?.file_path) throw new Error('Telegram file unavailable');
         const response = await fetch(`https://api.telegram.org/file/bot${botToken}/${info.result.file_path}`);
         if (!response.ok) throw new Error('Telegram download failed');
         const buffer = Buffer.from(await response.arrayBuffer());
-        const ext = path.extname(info.result.file_path) || '.jpg';
+        const ext = path.extname(originalName || info.result.file_path) || '.bin';
         const filename = `${crypto.randomUUID()}${ext}`;
         fs.mkdirSync(uploadDir, { recursive: true });
         fs.writeFileSync(path.join(uploadDir, filename), buffer);
-        return { url: `/uploads/${filename}`, type: 'image', name: filename };
+        return { url: `/uploads/${filename}`, type, name: originalName || filename };
+    }
+
+    async function extractMedia(message, uploadDir) {
+        if (message.photo?.length) {
+            const p = message.photo[message.photo.length - 1];
+            return downloadFile(p.file_id, uploadDir, 'image', 'telegram-photo.jpg');
+        }
+        if (message.video) return downloadFile(message.video.file_id, uploadDir, 'video', message.video.file_name || 'video.mp4');
+        if (message.video_note) return downloadFile(message.video_note.file_id, uploadDir, 'video_note', 'video-note.mp4');
+        if (message.audio) return downloadFile(message.audio.file_id, uploadDir, 'audio', message.audio.file_name || 'podcast.mp3');
+        if (message.voice) return downloadFile(message.voice.file_id, uploadDir, 'audio', 'voice-message.ogg');
+        if (message.document) {
+            const type = message.document.mime_type === 'application/pdf' ? 'pdf' : 'document';
+            return downloadFile(message.document.file_id, uploadDir, type, message.document.file_name || 'document');
+        }
+        return null;
     }
 
     async function handle(update, ctx) {
@@ -54,10 +70,27 @@ function makeTelegram(botToken) {
         }
 
         if (parsed.name === 'aide') {
-            await send(chatId, 'Commandes Goût Gueule :\n/publier\nTitre\nContenu\n\n/brouillon\nTitre\nContenu\n\n/valider ID\n/supprimer ID');
+            await send(chatId, 'Commandes Goût Gueule :\n/publier\nTitre\nContenu\n\n/brouillon\nTitre\nContenu\n\n/valider ID\n/supprimer ID\n/commentaires\n/valider_commentaire ID\n/modifier_commentaire ID\nNouveau texte\n/rejeter_commentaire ID');
             return;
         }
 
+        if (parsed.name === 'commentaires') {
+            const pending = [];
+            for (const post of ctx.db.posts) for (const comment of (post.comments || [])) if (comment.status === 'pending_review') pending.push(`${comment.id.slice(0,8)} — ${post.title}\n${comment.content}`);
+            await send(chatId, pending.length ? 'Commentaires en attente :\n\n' + pending.join('\n\n') : 'Aucun commentaire en attente.');
+            return;
+        }
+        if (['valider_commentaire','rejeter_commentaire','modifier_commentaire'].includes(parsed.name)) {
+            const lines = parsed.args.split('\n');
+            const prefix = (lines.shift() || '').trim().split(/\s+/)[0];
+            let found = null;
+            for (const post of ctx.db.posts) { const comment = (post.comments || []).find(c => c.id.startsWith(prefix)); if (comment) { found = { post, comment }; break; } }
+            if (!found) { await send(chatId, 'Commentaire introuvable.'); return; }
+            if (parsed.name === 'valider_commentaire') { found.comment.status = 'approved'; delete found.comment.moderationReason; if (ctx.broadcast) ctx.broadcast({ type: 'new_comment', postId: found.post.id, comment: found.comment }); }
+            else if (parsed.name === 'rejeter_commentaire') found.comment.status = 'rejected';
+            else { const text = lines.join('\n').trim(); if (!text) { await send(chatId, 'Ajoute le nouveau texte après l’identifiant.'); return; } found.comment.content = text; found.comment.status = 'approved'; }
+            ctx.saveDb(); await send(chatId, `✅ Commentaire ${found.comment.status === 'approved' ? 'validé' : 'rejeté'}.`); return;
+        }
         if (parsed.name === 'valider' || parsed.name === 'supprimer') {
             const prefix = parsed.args.split(/\s+/)[0];
             const post = ctx.db.posts.find(p => !p.deleted && p.id.startsWith(prefix));
@@ -84,10 +117,10 @@ function makeTelegram(botToken) {
 
         const media = [];
         try {
-            const photos = message.photo;
-            if (photos?.length) media.push(await downloadPhoto(photos[photos.length - 1].file_id, ctx.uploadDir));
+            const item = await extractMedia(message, ctx.uploadDir);
+            if (item) media.push(item);
         } catch (error) {
-            await send(chatId, 'Le texte est prêt, mais l’image n’a pas pu être importée.');
+            await send(chatId, 'Le texte est prêt, mais le média n’a pas pu être importé.');
         }
 
         const now = new Date().toISOString();
