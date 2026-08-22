@@ -227,8 +227,7 @@
         .post-body { padding: 0 15px 15px; }
         .post-title { font-size: 20px; margin-bottom: 10px; }
         .post-content { font-size: 15px; }
-        .post-media { margin-top: 10px; display: block; }
-        .post-media::after { content: ""; display: table; clear: both; }
+        .post-media { margin-top: 10px; display: grid; gap: 10px; }
         .post-media img, .post-media video { width: 100%; border-radius: 8px; }
         .post-media audio { width: 100%; min-height: 42px; }
         .media-pdf { width: 100%; height: 520px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
@@ -640,10 +639,9 @@
                 </div>
                 <div class="post-body">
                     <h2 class="post-title"><a href="/post/${post.id}" style="color:inherit; text-decoration:none;" onmouseover="this.style.color='var(--rouge)'" onmouseout="this.style.color='inherit'">${post.title}</a></h2>
-                    ${floatedMedia ? mediaHtml : ''}
                     <div class="post-content collapsible" data-collapsed="true">${contentHtml}</div>
                     <button class="see-more-btn" onclick="toggleSeeMore(this)" style="display:none;">Voir plus</button>
-                    ${floatedMedia ? '' : mediaHtml}
+                    ${mediaHtml}
                 </div>
                 <div class="post-footer">
                     <button class="action-btn reaction-like ${liked ? 'active' : ''}" onclick="react('${post.id}', 'like')" aria-label="J’aime">
@@ -819,7 +817,7 @@
         if (!media || media.length === 0) return '';
         return `<div class="post-media">
             ${media.map(m => {
-                const width = Math.max(20, Math.min(90, Number(m.size) || 48)); const position = m.position === 'left' ? `float:left; width:${width}%; margin:0 14px 8px 0;` : m.position === 'right' ? `float:right; width:${width}%; margin:0 0 8px 14px;` : m.position === 'full' ? 'width:100%;' : `width:${width}%; margin:0 auto;`;
+                const position = 'width:100%; margin:0 auto;';
                 if (m.type === 'image') return `<div class="protected-wrap" data-sign-url="${m.url}" style="${position}"><img class="protected" src="${m.url}" loading="lazy" alt="${m.caption || ''}" draggable="false" oncontextmenu="return false" referrerpolicy="no-referrer"><div class="protected-watermark">Goût Gueule</div>${m.caption ? `<small>${m.caption}</small>` : ''}</div>`;
                 if (m.type === 'video' || m.type === 'video_note') return `<div class="protected-wrap" data-sign-url="${m.url}"><video class="protected ${m.type === 'video_note' ? 'protected-circle' : ''}" src="${m.url}" controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false"></video><div class="protected-watermark">Goût Gueule</div></div>`;
                 if (m.type === 'audio') return `<div class="protected-wrap" data-sign-url="${m.url}"><audio src="${m.url}" controls preload="metadata"></audio></div>`;
