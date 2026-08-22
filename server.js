@@ -392,6 +392,11 @@ app.post('/api/events/:type', (req, res) => {
     res.json({ ok: true });
 });
 
+app.post('/api/markdown/preview', (req, res) => {
+    const source = String(req.body?.content || '').replace(/<\/?[a-z][^>]*>/gi, '');
+    res.json({ html: marked.parse(source, { gfm: true, breaks: true }) });
+});
+
 app.get('/api/posts', (req, res) => {
     let posts = db.posts.filter(p => !p.deleted).sort((a, b) => {
         if (a.pinned && !b.pinned) return -1;
