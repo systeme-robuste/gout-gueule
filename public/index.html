@@ -607,6 +607,12 @@
         renderPosts();
     }
 
+    function safeCommentText(value) { return String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+    function renderComments(comments, postId, parentId = null, level = 0) {
+        return (comments || []).filter(c => (c.parentId || null) === parentId).map(c => `<div class="comment" style="margin-left:${Math.min(level,3)*18}px"><strong>${safeCommentText(c.userName || 'Visiteur')}</strong><span class="comment-time">${new Date(c.createdAt).toLocaleString()}</span><p>${safeCommentText(c.content)}</p><button class="btn btn-secondary" style="font-size:11px;padding:3px 8px" onclick="replyToComment('${postId}','${c.id}')">Répondre</button>${renderComments(comments, postId, c.id, level + 1)}</div>`).join('');
+    }
+    function replyToComment(postId, commentId) { const input = document.getElementById('comment-input-' + postId); if (input) { input.dataset.parentId = commentId; input.placeholder = 'Répondre à ce commentaire…'; input.focus(); } }
+
     function renderPosts() {
         const container = document.getElementById('postsList');
         if (state.posts.length === 0) {
@@ -648,9 +654,10 @@
                 </div>
                 <div id="comments-${post.id}" class="comments-section hidden">
                     <div class="comments-list">
-                        ${(post.comments || []).map(c => `<div class="comment"><strong>${c.userName || 'Visiteur'}</strong><p>${c.content || ''}</p></div>`).join('') || '<p class="muted">Aucun commentaire pour le moment.</p>'}
+                        ${renderComments(post.comments, post.id) || '<p class="muted">Aucun commentaire pour le moment.</p>'}
                     </div>
-                    <p class="comment-note">💬 Les commentaires sont vérifiés avant publication.</p>
+                    <div class="comment-composer"><input id="comment-input-${post.id}" placeholder="Écrire un commentaire…" onkeydown="if(event.key==='Enter') addComment('${post.id}')"><button class="btn btn-primary" onclick="addComment('${post.id}')">Publier</button></div>
+                    <p class="comment-note">💬 Les commentaires suspects sont placés en quarantaine pour validation.</p>
                 </div>
             </div>
         `}).join('');
@@ -769,11 +776,13 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ content })
+            body: JSON.stringify({ content, parentId: input.dataset.parentId || null })
         });
         const data = await res.json();
         if (data.id) {
             input.value = '';
+            delete input.dataset.parentId;
+            input.placeholder = 'Écrire un commentaire…';
             const post = state.posts.find(p => p.id === postId);
             if (post) {
                 if (!post.comments) post.comments = [];
