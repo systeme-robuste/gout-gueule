@@ -345,6 +345,7 @@
                 <p class="profile-bio" id="pageBio">Chargement...</p>
                 <div class="profile-actions">
                     <button class="btn btn-primary">👍 J'aime</button>
+                    <button class="btn btn-secondary" id="followBtn" onclick="toggleFollow()">Suivre <span id="followersCount">0</span></button>
                     <button class="btn btn-secondary" id="adminTabBtn" onclick="showTab('admin')" style="display:none">⚙️ Admin</button>
                 </div>
             </div>
@@ -445,6 +446,7 @@
 
     async function init() {
         await loadSettings();
+        await loadFollowers();
         await loadPosts();
         await loadStories();
         setupWS();
@@ -538,6 +540,10 @@
             loc.innerHTML = '📍 ' + data.location;
         }
     }
+
+    function visitorId() { let id = localStorage.getItem('gg_visitor_id'); if (!id) { id = crypto.randomUUID ? crypto.randomUUID() : 'v-' + Math.random().toString(36).slice(2); localStorage.setItem('gg_visitor_id', id); } return id; }
+    async function loadFollowers() { const id = visitorId(); const data = await api('/api/followers'); const count = document.getElementById('followersCount'); const btn = document.getElementById('followBtn'); if (count) count.innerText = data.count || 0; if (btn) btn.firstChild.textContent = data.following ? 'Suivi ' : 'Suivre '; }
+    async function toggleFollow() { const data = await api('/api/followers/toggle', 'POST', { visitorId: visitorId() }); const count = document.getElementById('followersCount'); const btn = document.getElementById('followBtn'); if (count) count.innerText = data.count || 0; if (btn) btn.firstChild.textContent = data.following ? 'Suivi ' : 'Suivre '; }
 
     async function loadAdminSettingsForm() {
         const data = await api('/api/admin/settings');
