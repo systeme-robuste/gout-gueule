@@ -632,6 +632,23 @@ app.get('/api/settings', (req, res) => {
     res.json(db.settings);
 });
 
+// Followers persistants (identité temporaire jusqu'à l'intégration Google OAuth)
+app.get('/api/followers', (req, res) => {
+    const visitorId = String(req.get('x-visitor-id') || '');
+    const followers = Array.isArray(db.settings.followers) ? db.settings.followers : [];
+    res.json({ count: followers.length, following: !!visitorId && followers.includes(visitorId) });
+});
+app.post('/api/followers/toggle', (req, res) => {
+    const visitorId = String(req.body?.visitorId || '').trim();
+    if (!visitorId || visitorId.length > 100) return res.status(400).json({ error: 'Identité visiteur invalide' });
+    if (!Array.isArray(db.settings.followers)) db.settings.followers = [];
+    const i = db.settings.followers.indexOf(visitorId);
+    if (i >= 0) db.settings.followers.splice(i, 1);
+    else db.settings.followers.push(visitorId);
+    saveDb();
+    res.json({ count: db.settings.followers.length, following: i < 0 });
+});
+
 app.post('/api/admin/settings', isAdmin, upload.single('file'), (req, res) => {
     // Body fields + optional file via multer
     const body = { ...req.body };
