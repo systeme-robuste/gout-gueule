@@ -227,7 +227,8 @@
         .post-body { padding: 0 15px 15px; }
         .post-title { font-size: 20px; margin-bottom: 10px; }
         .post-content { font-size: 15px; }
-        .post-media { margin-top: 10px; display: grid; gap: 10px; }
+        .post-media { margin-top: 10px; display: block; }
+        .post-media::after { content: ""; display: table; clear: both; }
         .post-media img, .post-media video { width: 100%; border-radius: 8px; }
         .post-media audio { width: 100%; min-height: 42px; }
         .media-pdf { width: 100%; height: 520px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
@@ -625,6 +626,8 @@
             const likeCount = reactions.filter(r => r === 'like').length;
             const commentCount = (post.comments || []).length;
             const liked = localStorage.getItem('gg-like-' + post.id) === '1';
+            const mediaHtml = renderMedia(post.media);
+            const floatedMedia = (post.media || []).some(m => m.position === 'left' || m.position === 'right');
             return `
             <div class="card post-card" data-post-id="${post.id}">
                 <div class="post-header">
@@ -637,9 +640,10 @@
                 </div>
                 <div class="post-body">
                     <h2 class="post-title"><a href="/post/${post.id}" style="color:inherit; text-decoration:none;" onmouseover="this.style.color='var(--rouge)'" onmouseout="this.style.color='inherit'">${post.title}</a></h2>
+                    ${floatedMedia ? mediaHtml : ''}
                     <div class="post-content collapsible" data-collapsed="true">${contentHtml}</div>
                     <button class="see-more-btn" onclick="toggleSeeMore(this)" style="display:none;">Voir plus</button>
-                    ${renderMedia(post.media)}
+                    ${floatedMedia ? '' : mediaHtml}
                 </div>
                 <div class="post-footer">
                     <button class="action-btn reaction-like ${liked ? 'active' : ''}" onclick="react('${post.id}', 'like')" aria-label="J’aime">
