@@ -120,7 +120,7 @@ app.get('/post/:id/:slug?', (req, res) => {
     if (!post) return res.status(404).send('<h1>Article introuvable</h1>');
     post.views = (post.views || 0) + 1;
     saveDb();
-    const html = marked.parse(post.content || '');
+    const html = post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : marked.parse(post.content || '');
     const ogImage = (post.media && post.media[0] && post.media[0].url) || '/og-image.jpg';
     const ogImageUrl = ogImage.startsWith('http') ? ogImage : `https://gout-gueule-fcvr.onrender.com${ogImage}`;
     const description = (post.content || '').replace(/[#*`>\n\[\]]/g, ' ').substring(0, 160).trim();
@@ -219,6 +219,20 @@ function escapeHtml(text) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+function renderAdvancedBlocks(blocks, media) {
+    return (Array.isArray(blocks) ? blocks : []).map(block => {
+        const m = Number.isInteger(block.mediaIndex) ? media[block.mediaIndex] : null;
+        const url = m && escapeHtml(m.url); const caption = escapeHtml(block.caption || (m && m.caption) || '');
+        const style = `width:${Math.max(20, Math.min(100, Number(block.size) || 100))}%;margin:${block.position === 'left' ? '0 auto 16px 0' : block.position === 'right' ? '0 0 16px auto' : '0 auto 16px'};`;
+        if (block.type === 'markdown') return `<div class="advanced-markdown">${marked.parse(block.text || '')}</div>`;
+        if (!url) return '';
+        if (block.type === 'image') return `<figure class="advanced-block" style="${style}"><img src="${url}" alt="${caption}" style="width:100%;border-radius:8px"><figcaption>${caption}</figcaption></figure>`;
+        if (block.type === 'audio') return `<figure class="advanced-block" style="${style}"><audio controls src="${url}" style="width:100%"></audio><figcaption>${caption}</figcaption></figure>`;
+        if (block.type === 'pdf') return `<figure class="advanced-block" style="${style}"><iframe src="${url}" title="${caption || 'PDF'}" style="width:100%;height:520px"></iframe><figcaption>${caption}</figcaption></figure>`;
+        return `<figure class="advanced-block" style="${style}"><video controls src="${url}" ${block.type === 'video_note' ? 'style="aspect-ratio:1;border-radius:50%;object-fit:cover"' : 'style="width:100%"'}></video><figcaption>${caption}</figcaption></figure>`;
+    }).join('');
 }
 
 // Parse tags: accepte JSON array ("[\"a\",\"b\"]") OU comma-separated ("a,b,c") OU string seule ("a")
@@ -419,6 +433,7 @@ app.get('/api/posts', (req, res) => {
 
 app.post('/api/admin/posts', isAdmin, upload.array('files'), (req, res) => {
     const { title, content, tags, pinned, published, status, coverImage, attachments } = req.body;
+    const editorMode = req.body.editorMode === 'advanced' ? 'advanced' : 'normal';
     let media = [];
     if (req.files && req.files.length > 0) {
         const position = ['left','right','full','center'].includes(req.body.mediaPosition) ? req.body.mediaPosition : 'center';
@@ -429,15 +444,18 @@ app.post('/api/admin/posts', isAdmin, upload.array('files'), (req, res) => {
         media.unshift({ url: coverImage, type: 'image', name: 'cover' });
     }
     if (attachments) {
-        try {
-            const atts = typeof attachments === 'string' ? JSON.parse(attachments) : attachments;
-            atts.forEach(a => media.push(a));
-        } catch (e) {}
+        try { const atts = typeof attachments === 'string' ? JSON.parse(attachments) : attachments; if (Array.isArray(atts)) atts.forEach(a => media.push(a)); } catch (e) {}
     }
+    let blocks = [];
+    try { blocks = typeof req.body.blocks === 'string' ? JSON.parse(req.body.blocks) : (req.body.blocks || []); } catch (e) { blocks = []; }
+    if (!Array.isArray(blocks)) blocks = [];
+    blocks = blocks.map(b => ({ type: ['markdown','image','audio','video','video_note','pdf'].includes(b.type) ? b.type : 'markdown', text: String(b.text || ''), mediaIndex: Number.isInteger(b.mediaIndex) ? b.mediaIndex : null, caption: String(b.caption || ''), position: ['left','right','center','full'].includes(b.position) ? b.position : 'center', size: Math.max(20, Math.min(100, Number(b.size) || 100)) }));
     const post = {
         id: uuidv4(),
         title,
         content,
+        editorMode,
+        blocks,
         tags: parseTags(tags),
         pinned: pinned === 'true' || pinned === true,
         published: published !== 'false',
@@ -459,12 +477,15 @@ app.put('/api/admin/posts/:id', isAdmin, upload.array('files'), (req, res) => {
     const post = db.posts.find(p => p.id === req.params.id);
     if (!post) return res.status(404).json({ error: 'Not found' });
     const { title, content, tags, pinned, published, status, coverImage, attachments } = req.body;
+    const editorMode = req.body.editorMode === 'advanced' ? 'advanced' : 'normal';
     if (title !== undefined) post.title = title;
     if (content !== undefined) post.content = content;
     if (tags !== undefined) post.tags = parseTags(tags);
     if (pinned !== undefined) post.pinned = pinned === 'true' || pinned === true;
     if (published !== undefined) post.published = published !== 'false';
     if (status !== undefined) post.status = status;
+    if (req.body.editorMode !== undefined) post.editorMode = req.body.editorMode === 'advanced' ? 'advanced' : 'normal';
+    if (req.body.blocks !== undefined) { try { const b = typeof req.body.blocks === 'string' ? JSON.parse(req.body.blocks) : req.body.blocks; if (Array.isArray(b)) post.blocks = b; } catch (e) {} }
     if (req.files && req.files.length > 0) {
         req.files.forEach(f => post.media.push({ url: `/uploads/${f.filename}`, type: f.mimetype.split('/')[0], name: f.originalname }));
     }
