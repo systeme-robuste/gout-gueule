@@ -29,7 +29,7 @@ if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // DB Initialization
 let db = {
-    users: [], posts: [], stories: [], subscribers: [],
+    users: [], posts: [], stories: [], subscribers: [], magicLinkTokens: [],
     settings: { pageName: 'Goût Gueule', bio: 'Bienvenue sur Goût Gueule, votre destination gourmande.', social: {}, smtp: {} },
     apiKeys: [], cms_integrations: {}
 };
@@ -60,6 +60,8 @@ let dbReady = Promise.resolve();
 if (pgPool) {
     dbReady = (async () => {
         await pgPool.query('CREATE TABLE IF NOT EXISTS app_state (id INTEGER PRIMARY KEY, state JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
+        await pgPool.query(`CREATE TABLE IF NOT EXISTS magic_link_tokens (id UUID PRIMARY KEY, email TEXT NOT NULL, token_hash TEXT NOT NULL UNIQUE, expires_at TIMESTAMPTZ NOT NULL, used_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+        await pgPool.query('CREATE INDEX IF NOT EXISTS magic_link_tokens_lookup ON magic_link_tokens (token_hash, expires_at)');
         const result = await pgPool.query('SELECT state FROM app_state WHERE id = 1');
         if (result.rows[0]?.state) db = result.rows[0].state;
         else await saveDb();
@@ -309,6 +311,70 @@ function verifyTelegramAuth(payload) {
     return data;
 }
 app.get('/api/auth/telegram/enabled', (req, res) => res.json({ enabled: !!process.env.TELEGRAM_BOT_TOKEN, bot: TELEGRAM_LOGIN_BOT }));
+// Email magic links. Sending is deliberately fail-closed: no provider credentials means
+// no token is issued and no misleading "email sent" response is returned.
+const MAGIC_LINK_SENDER = process.env.MAGIC_LINK_SENDER || 'goutgueule.ia@gmail.com';
+const MAGIC_LINK_TTL_MS = 15 * 60 * 1000;
+const magicLinkAttempts = new Map();
+function magicLinkTransport() {
+    const user = process.env.GMAIL_SMTP_USER || process.env.SMTP_USER;
+    const pass = process.env.GMAIL_SMTP_APP_PASSWORD || process.env.SMTP_PASS;
+    if (!user || !pass || user.toLowerCase() !== MAGIC_LINK_SENDER.toLowerCase()) return null;
+    return nodemailer.createTransport({ host: process.env.SMTP_HOST || 'smtp.gmail.com', port: Number(process.env.SMTP_PORT || 465), secure: process.env.SMTP_SECURE !== 'false', auth: { user, pass } });
+}
+function normaliseEmail(value) { return String(value || '').trim().toLowerCase(); }
+async function saveMagicToken(id, email, tokenHash, expiresAt) {
+    if (pgPool) {
+        await pgPool.query('DELETE FROM magic_link_tokens WHERE email=$1 OR expires_at < NOW()', [email]);
+        await pgPool.query('INSERT INTO magic_link_tokens (id,email,token_hash,expires_at) VALUES ($1,$2,$3,$4)', [id, email, tokenHash, expiresAt]);
+    } else {
+        db.magicLinkTokens = (db.magicLinkTokens || []).filter(t => t.email !== email && new Date(t.expiresAt) > new Date());
+        db.magicLinkTokens.push({ id, email, tokenHash, expiresAt: expiresAt.toISOString(), usedAt: null }); saveDb();
+    }
+}
+async function consumeMagicToken(tokenHash) {
+    if (pgPool) {
+        const client = await pgPool.connect();
+        try { await client.query('BEGIN'); const q = await client.query('SELECT id,email FROM magic_link_tokens WHERE token_hash=$1 AND used_at IS NULL AND expires_at > NOW() FOR UPDATE', [tokenHash]); if (!q.rows[0]) { await client.query('ROLLBACK'); return null; } await client.query('UPDATE magic_link_tokens SET used_at=NOW() WHERE id=$1', [q.rows[0].id]); await client.query('COMMIT'); return q.rows[0]; }
+        catch (e) { await client.query('ROLLBACK').catch(() => {}); throw e; } finally { client.release(); }
+    }
+    const item = (db.magicLinkTokens || []).find(t => t.tokenHash === tokenHash && !t.usedAt && new Date(t.expiresAt) > new Date());
+    if (!item) return null; item.usedAt = new Date().toISOString(); saveDb(); return item;
+}
+function magicLinkUser(email) {
+    let user = db.users.find(u => normaliseEmail(u.email) === email);
+    if (!user) { user = { id: `email-${uuidv4()}`, email, name: email.split('@')[0] || 'Utilisateur', authProvider: 'email', createdAt: new Date().toISOString() }; db.users.push(user); }
+    user.authProvider = 'email'; user.updatedAt = new Date().toISOString(); return user;
+}
+app.post('/api/auth/magic-link/request', async (req, res) => {
+    const email = normaliseEmail(req.body?.email);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Adresse e-mail invalide' });
+    const transport = magicLinkTransport();
+    if (!transport) return res.status(503).json({ error: 'Connexion e-mail indisponible : l’envoi sécurisé n’est pas configuré.' });
+    const now = Date.now(), previous = magicLinkAttempts.get(email) || 0;
+    if (now - previous < 60 * 1000) return res.status(429).json({ error: 'Veuillez patienter avant de demander un nouveau lien.' });
+    magicLinkAttempts.set(email, now);
+    const raw = crypto.randomBytes(32).toString('base64url');
+    const tokenHash = crypto.createHash('sha256').update(raw).digest('hex');
+    const expiresAt = new Date(now + MAGIC_LINK_TTL_MS);
+    await saveMagicToken(uuidv4(), email, tokenHash, expiresAt);
+    const origin = process.env.PUBLIC_ORIGIN || `${req.protocol}://${req.get('host')}`;
+    const link = `${origin}/api/auth/magic-link/verify?token=${encodeURIComponent(raw)}`;
+    try { await transport.sendMail({ from: `Goût Gueule <${MAGIC_LINK_SENDER}>`, to: email, subject: 'Votre lien de connexion Goût Gueule', text: `Connectez-vous à Goût Gueule : ${link}\n\nCe lien expire dans 15 minutes et ne peut être utilisé qu’une fois.`, html: `<p>Connectez-vous à Goût Gueule :</p><p><a href="${link}">Ouvrir Goût Gueule</a></p><p>Ce lien expire dans 15 minutes et ne peut être utilisé qu’une fois.</p>` }); }
+    catch (error) { console.error('[auth] magic-link send failed:', error.message); return res.status(502).json({ error: 'L’e-mail n’a pas pu être envoyé.' }); }
+    res.json({ success: true, message: 'Si cette adresse est valide, un lien de connexion vient d’être envoyé.' });
+});
+app.get('/api/auth/magic-link/verify', async (req, res) => {
+    const raw = String(req.query.token || '');
+    if (!/^[A-Za-z0-9_-]{32,}$/.test(raw)) return res.status(400).send('Lien de connexion invalide.');
+    const item = await consumeMagicToken(crypto.createHash('sha256').update(raw).digest('hex'));
+    if (!item) return res.status(410).send('Ce lien est invalide, expiré ou déjà utilisé.');
+    const user = magicLinkUser(item.email); saveDb();
+    req.session.userId = user.id; req.session.userName = user.name; req.session.userEmail = user.email; req.session.authProvider = 'email';
+    res.redirect('/?magic_login=1');
+});
+app.get('/api/auth/magic-link/enabled', (req, res) => res.json({ enabled: !!magicLinkTransport(), sender: MAGIC_LINK_SENDER }));
+
 app.post('/api/auth/telegram', (req, res) => {
     const data = verifyTelegramAuth(req.body);
     if (!data) return res.status(401).json({ error: 'Données Telegram invalides ou expirées' });
@@ -364,7 +430,7 @@ app.post('/api/auth/login', async (req, res) => {
     const user = db.users.find(u => u.email === email);
     if (user && await bcrypt.compare(password, user.password)) {
         req.session.userId = user.id;
-        req.session.userName = user.name;
+        req.session.userName = user.name; req.session.userEmail = user.email; req.session.authProvider = 'password';
         return res.json({ success: true, user: { name: user.name, email: user.email } });
     }
     res.status(401).json({ error: 'Invalid credentials' });
@@ -372,7 +438,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/me', (req, res) => {
     if (req.session.isAdmin) return res.json({ isAdmin: true, user: { name: 'Admin' } });
-    if (req.session.userId) return res.json({ userId: req.session.userId, user: { name: req.session.userName, photoUrl: req.session.userPhoto || null, telegramId: req.session.telegramId || null, provider: req.session.authProvider || 'password' } });
+    if (req.session.userId) return res.json({ userId: req.session.userId, user: { name: req.session.userName, photoUrl: req.session.userPhoto || null, telegramId: req.session.telegramId || null, provider: req.session.authProvider || 'password', email: req.session.userEmail || null } });
     res.json({ user: null });
 });
 
