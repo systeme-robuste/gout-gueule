@@ -3,6 +3,7 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const http = require('http');
+const crypto = require('crypto');
 const WebSocket = require('ws');
 const nodemailer = require('nodemailer');
 const { v4: uuidv4 } = require('uuid');
@@ -292,6 +293,52 @@ const isEngagement = (req, res, next) => {
 };
 
 // --- AUTH ROUTES ---
+// Telegram Login Widget (legacy iframe flow). The bot token never leaves the server.
+const TELEGRAM_LOGIN_BOT = process.env.TELEGRAM_LOGIN_BOT_USERNAME || 'XMonsieurBot';
+function verifyTelegramAuth(payload) {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    if (!token || !payload || typeof payload !== 'object' || typeof payload.hash !== 'string') return null;
+    const data = { ...payload }; const receivedHash = data.hash; delete data.hash;
+    const checkString = Object.keys(data).sort().map(k => `${k}=${data[k]}`).join('\n');
+    const secret = crypto.createHash('sha256').update(token).digest();
+    const expected = crypto.createHmac('sha256', secret).update(checkString).digest('hex');
+    if (receivedHash.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(receivedHash), Buffer.from(expected))) return null;
+    const authDate = Number(data.auth_date);
+    if (!Number.isFinite(authDate) || Math.abs(Date.now() / 1000 - authDate) > 86400) return null;
+    if (!data.id || !/^\d+$/.test(String(data.id))) return null;
+    return data;
+}
+app.get('/api/auth/telegram/enabled', (req, res) => res.json({ enabled: !!process.env.TELEGRAM_BOT_TOKEN, bot: TELEGRAM_LOGIN_BOT }));
+app.post('/api/auth/telegram', (req, res) => {
+    const data = verifyTelegramAuth(req.body);
+    if (!data) return res.status(401).json({ error: 'Données Telegram invalides ou expirées' });
+    const telegramId = String(data.id);
+    let user = db.users.find(u => u.telegramId === telegramId);
+    const name = [data.first_name, data.last_name].filter(Boolean).join(' ').trim() || data.username || 'Utilisateur Telegram';
+    if (user) {
+        user.name = name; user.username = data.username || user.username; user.photoUrl = data.photo_url || user.photoUrl;
+        user.updatedAt = new Date().toISOString();
+    } else {
+        user = { id: `telegram-${telegramId}`, telegramId, username: data.username || null, name, photoUrl: data.photo_url || null, createdAt: new Date().toISOString() };
+        db.users.push(user);
+    }
+    // Keep the existing session model, while recording the provider identity.
+    req.session.userId = user.id; req.session.userName = user.name; req.session.telegramId = telegramId;
+    req.session.userPhoto = user.photoUrl || null; req.session.authProvider = 'telegram';
+    saveDb();
+    res.json({ success: true, user: { id: user.id, telegramId, name: user.name, username: user.username, photoUrl: user.photoUrl } });
+});
+// Optional redirect callback for widget configurations using data-auth-url.
+app.get('/api/auth/telegram/callback', (req, res) => {
+    const data = verifyTelegramAuth(req.query);
+    if (!data) return res.status(401).send('Connexion Telegram invalide ou expirée.');
+    const telegramId = String(data.id); let user = db.users.find(u => u.telegramId === telegramId);
+    const name = [data.first_name, data.last_name].filter(Boolean).join(' ').trim() || data.username || 'Utilisateur Telegram';
+    if (!user) { user = { id: `telegram-${telegramId}`, telegramId, username: data.username || null, name, photoUrl: data.photo_url || null, createdAt: new Date().toISOString() }; db.users.push(user); }
+    else { user.name = name; user.username = data.username || user.username; user.photoUrl = data.photo_url || user.photoUrl; }
+    req.session.userId = user.id; req.session.userName = user.name; req.session.telegramId = telegramId; req.session.userPhoto = user.photoUrl || null; req.session.authProvider = 'telegram'; saveDb();
+    res.redirect('/?telegram_login=1');
+});
 app.post('/api/auth/register', async (req, res) => {
     const { name, email, password } = req.body;
     if (db.users.find(u => u.email === email)) return res.status(409).json({ error: 'User exists' });
@@ -325,7 +372,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/me', (req, res) => {
     if (req.session.isAdmin) return res.json({ isAdmin: true, user: { name: 'Admin' } });
-    if (req.session.userId) return res.json({ userId: req.session.userId, user: { name: req.session.userName } });
+    if (req.session.userId) return res.json({ userId: req.session.userId, user: { name: req.session.userName, photoUrl: req.session.userPhoto || null, telegramId: req.session.telegramId || null, provider: req.session.authProvider || 'password' } });
     res.json({ user: null });
 });
 
@@ -688,12 +735,12 @@ app.get('/api/settings', (req, res) => {
 
 // Followers persistants (identité temporaire jusqu'à l'intégration Google OAuth)
 app.get('/api/followers', (req, res) => {
-    const visitorId = String(req.get('x-visitor-id') || '');
+    const visitorId = req.session.userId || String(req.get('x-visitor-id') || '');
     const followers = Array.isArray(db.settings.followers) ? db.settings.followers : [];
     res.json({ count: followers.length, following: !!visitorId && followers.includes(visitorId) });
 });
 app.post('/api/followers/toggle', (req, res) => {
-    const visitorId = String(req.body?.visitorId || '').trim();
+    const visitorId = req.session.userId || String(req.body?.visitorId || '').trim();
     if (!visitorId || visitorId.length > 100) return res.status(400).json({ error: 'Identité visiteur invalide' });
     if (!Array.isArray(db.settings.followers)) db.settings.followers = [];
     const i = db.settings.followers.indexOf(visitorId);
