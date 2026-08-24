@@ -341,7 +341,7 @@
     
     <div class="profile-wrap">
         <div class="profile-card">
-            <img src="/gout-gueule-logo.png" id="profileLogo" class="profile-logo" alt="Logo Goût Gueule">
+            <img src="/gout-gueule-logo.png" id="profileLogo" class="profile-logo" alt="Logo Goût Gueule" onerror="this.onerror=null;this.src='/gout-gueule-logo.png';">
             <div class="profile-content">
                 <h1 class="profile-name" id="pageName">Goût Gueule</h1>
                 <p class="profile-bio" id="pageBio">Chargement...</p>
@@ -670,12 +670,12 @@
             return `
             <div class="card post-card" data-post-id="${post.id}">
                 <div class="post-header">
-                    <img src="${state.settings.logoUrl || 'https://via.placeholder.com/40'}" onerror="this.src='https://via.placeholder.com/40'">
+                    <img src="${state.settings.logoUrl || '/gout-gueule-logo.png'}" onerror="this.onerror=null;this.src='/gout-gueule-logo.png'">
                     <div class="post-info">
                         <div class="post-author">${state.settings.pageName || 'Goût Gueule'} ${post.pinned ? '📌' : ''}</div>
                         <div class="post-meta">${new Date(post.createdAt).toLocaleString()} • 👁️ ${post.views || 0}</div>
                     </div>
-                    ${state.user && state.user.name === 'Admin' ? `<button onclick="deletePost('${post.id}')" style="margin-left:auto; background:none; border:none; color:var(--gris); cursor:pointer; font-size:14px;">🗑️</button>` : ''}
+                    
                 </div>
                 <div class="post-body">
                     <h2 class="post-title"><a href="/post/${post.id}" style="color:inherit; text-decoration:none;" onmouseover="this.style.color='var(--rouge)'" onmouseout="this.style.color='inherit'">${post.title}</a></h2>
