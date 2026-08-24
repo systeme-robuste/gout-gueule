@@ -482,8 +482,7 @@
         const profileLogin = document.getElementById('loginProfileBtn');
         if (state.user) {
             if (profileLogin) profileLogin.style.display = 'none';
-            navAuth.innerHTML = `<span style="font-size:14px; margin-right:10px;">Salut, ${state.user.name}</span>
-                                <button class="btn btn-secondary" onclick="logout()">Déconnexion</button>`;
+            navAuth.innerHTML = '';
             if (state.user.name === 'Admin') {
                 adminComposer.classList.add('hidden');
                 adminTabBtn.style.display = 'none';
