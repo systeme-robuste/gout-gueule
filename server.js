@@ -833,10 +833,17 @@ app.post('/api/admin/settings', isAdmin, upload.single('file'), (req, res) => {
     res.json({ success: true, settings: db.settings });
 });
 
-// Upload just a logo
+// Persistent profile logo: store a compact image copy in PostgreSQL JSONB.
+app.get('/api/settings/logo', (req, res) => {
+    const match = String(db.settings.logoData || '').match(/^data:([^;]+);base64,(.+)$/);
+    if (!match) return res.status(404).end();
+    res.type(match[1]).send(Buffer.from(match[2], 'base64'));
+});
 app.post('/api/admin/settings/logo', isAdmin, upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file' });
-    db.settings.logoUrl = `/uploads/${req.file.filename}`;
+    const bytes = fs.readFileSync(req.file.path);
+    db.settings.logoData = `data:${req.file.mimetype};base64,${bytes.toString('base64')}`;
+    db.settings.logoUrl = '/api/settings/logo';
     saveDb();
     res.json({ success: true, logoUrl: db.settings.logoUrl });
 });
