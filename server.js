@@ -225,7 +225,7 @@ function escapeHtml(text) {
 function renderAdvancedBlocks(blocks, media) {
     return (Array.isArray(blocks) ? blocks : []).map(block => {
         const m = Number.isInteger(block.mediaIndex) ? media[block.mediaIndex] : (block.type !== 'markdown' && media.length ? media[0] : null);
-        const url = m && escapeHtml(m.url); const caption = escapeHtml(block.caption || (m && m.caption) || '');
+        const rawUrl = m && m.url; const url = rawUrl ? escapeHtml(rawUrl.replace(/^\/uploads\//, '/media-public/')) : null; const caption = escapeHtml(block.caption || '');
         const style = `width:${Math.max(20, Math.min(100, Number(block.size) || 100))}%;margin:${block.position === 'left' ? '0 auto 16px 0' : block.position === 'right' ? '0 0 16px auto' : '0 auto 16px'};`;
         if (block.type === 'markdown') return `<div class="advanced-markdown">${marked.parse(block.text || '')}</div>`;
         if (!url) return '';
