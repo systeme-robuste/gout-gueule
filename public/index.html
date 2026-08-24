@@ -620,7 +620,8 @@
             return;
         }
         container.innerHTML = state.posts.map(post => {
-            const contentHtml = post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : marked.parse(post.content || '');
+            const advancedHtml = post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : '';
+            const contentHtml = post.editorMode === 'advanced' ? ((post.blocks || []).some(b => b.type === 'markdown') ? advancedHtml : marked.parse(post.content || '') + advancedHtml) : marked.parse(post.content || '');
             const reactions = Object.values(post.reactions || {});
             const likeCount = reactions.filter(r => r === 'like').length;
             const commentCount = (post.comments || []).length;
@@ -815,7 +816,7 @@
 
     function renderAdvancedBlocks(blocks, media) {
         return (blocks || []).map(b => {
-            const m = Number.isInteger(b.mediaIndex) ? media[b.mediaIndex] : null;
+            const m = Number.isInteger(b.mediaIndex) ? media[b.mediaIndex] : (b.type !== 'markdown' && media.length ? media[0] : null);
             const esc = v => safeCommentText(v);
             const style = `width:${Math.max(20, Math.min(100, Number(b.size)||100))}%;margin:${b.position==='left'?'0 auto 16px 0':b.position==='right'?'0 0 16px auto':'0 auto 16px'};`;
             if (b.type === 'markdown') return `<div class="advanced-markdown">${marked.parse(b.text || '')}</div>`;
