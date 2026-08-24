@@ -120,7 +120,8 @@ app.get('/post/:id/:slug?', (req, res) => {
     if (!post) return res.status(404).send('<h1>Article introuvable</h1>');
     post.views = (post.views || 0) + 1;
     saveDb();
-    const html = post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : marked.parse(post.content || '');
+    const advancedHtml = post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : '';
+    const html = post.editorMode === 'advanced' ? ((post.blocks || []).some(b => b.type === 'markdown') ? advancedHtml : marked.parse(post.content || '') + advancedHtml) : marked.parse(post.content || '');
     const ogImage = (post.media && post.media[0] && post.media[0].url) || '/og-image.jpg';
     const ogImageUrl = ogImage.startsWith('http') ? ogImage : `https://gout-gueule-fcvr.onrender.com${ogImage}`;
     const description = (post.content || '').replace(/[#*`>\n\[\]]/g, ' ').substring(0, 160).trim();
@@ -223,7 +224,7 @@ function escapeHtml(text) {
 
 function renderAdvancedBlocks(blocks, media) {
     return (Array.isArray(blocks) ? blocks : []).map(block => {
-        const m = Number.isInteger(block.mediaIndex) ? media[block.mediaIndex] : null;
+        const m = Number.isInteger(block.mediaIndex) ? media[block.mediaIndex] : (block.type !== 'markdown' && media.length ? media[0] : null);
         const url = m && escapeHtml(m.url); const caption = escapeHtml(block.caption || (m && m.caption) || '');
         const style = `width:${Math.max(20, Math.min(100, Number(block.size) || 100))}%;margin:${block.position === 'left' ? '0 auto 16px 0' : block.position === 'right' ? '0 0 16px auto' : '0 auto 16px'};`;
         if (block.type === 'markdown') return `<div class="advanced-markdown">${marked.parse(block.text || '')}</div>`;
