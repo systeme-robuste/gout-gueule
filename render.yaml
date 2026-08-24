@@ -16,6 +16,14 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
+      # Required before enabling email magic links. Use a Gmail App Password,
+      # never a regular account password. Sender must be goutgueule.ia@gmail.com.
+      - key: GMAIL_SMTP_USER
+        sync: false
+      - key: GMAIL_SMTP_APP_PASSWORD
+        sync: false
+      - key: PUBLIC_ORIGIN
+        value: https://gout-gueule-fcvr.onrender.com
     disk:
       name: goutgueule-storage
       mountPath: /var/lib/goutgueule/storage
