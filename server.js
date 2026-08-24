@@ -600,6 +600,7 @@ app.put('/api/admin/posts/:id', isAdmin, upload.array('files'), (req, res) => {
     if (status !== undefined) post.status = status;
     if (req.body.editorMode !== undefined) post.editorMode = req.body.editorMode === 'advanced' ? 'advanced' : 'normal';
     if (req.body.blocks !== undefined) { try { const b = typeof req.body.blocks === 'string' ? JSON.parse(req.body.blocks) : req.body.blocks; if (Array.isArray(b)) post.blocks = b; } catch (e) {} }
+    if (req.body.replaceMedia === 'true' || req.body.replaceMedia === true) post.media = [];
     if (req.files && req.files.length > 0) {
         req.files.forEach(f => post.media.push({ url: `/uploads/${f.filename}`, type: f.mimetype.split('/')[0], name: f.originalname }));
     }
