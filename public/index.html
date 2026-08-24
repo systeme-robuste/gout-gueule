@@ -330,7 +330,7 @@
     <div class="brand"><img src="/gout-gueule-logo.png" alt="Logo Goût Gueule" class="brand-logo"> <span>Goût Gueule</span></div>
     <div class="nav-right">
         <div id="wsStatus" class="ws-dot" title="WebSocket Status"></div>
-        <div id="navAuth" style="display:flex;align-items:center;gap:8px;"><button class="btn btn-primary" onclick="openTelegramLogin()">Connexion Telegram</button></div>
+        <div id="navAuth" style="display:flex;align-items:center;gap:8px;"></div>
         <button class="btn btn-secondary" onclick="toggleTheme()" style="padding: 5px 10px;">🌙</button>
     </div>
 </nav>
@@ -347,6 +347,7 @@
                 <div class="profile-actions">
                     <button class="btn btn-primary">👍 J'aime</button>
                     <button class="btn btn-secondary" id="followBtn" onclick="toggleFollow()">Suivre <span id="followersCount">0</span></button>
+                    <button class="btn btn-secondary" id="loginProfileBtn" onclick="openLoginChoice()">👤 Se connecter</button>
                     <button class="btn btn-secondary" id="adminTabBtn" onclick="showTab('admin')" style="display:none">⚙️ Admin</button>
                 </div>
             </div>
@@ -477,7 +478,9 @@
         const adminComposer = document.getElementById('adminComposer');
         const adminTabBtn = document.getElementById('adminTabBtn');
 
+        const profileLogin = document.getElementById('loginProfileBtn');
         if (state.user) {
+            if (profileLogin) profileLogin.style.display = 'none';
             navAuth.innerHTML = `<span style="font-size:14px; margin-right:10px;">Salut, ${state.user.name}</span>
                                 <button class="btn btn-secondary" onclick="logout()">Déconnexion</button>`;
             if (state.user.name === 'Admin') {
@@ -485,10 +488,16 @@
                 adminTabBtn.style.display = 'flex';
             }
         } else {
-            navAuth.innerHTML = `<button class="btn btn-primary" onclick="openTelegramLogin()">Connexion</button>`;
+            if (profileLogin) profileLogin.style.display = 'inline-flex';
+            navAuth.innerHTML = '';
             adminComposer.classList.add('hidden');
             adminTabBtn.style.display = 'none';
         }
+    }
+
+    function openLoginChoice() {
+        const navAuth = document.getElementById('navAuth');
+        navAuth.innerHTML = '<div class="login-choice" style="position:absolute;right:12px;top:58px;background:var(--card);padding:12px;border-radius:10px;box-shadow:0 4px 18px #0003;z-index:20"><strong>Se connecter avec</strong><div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-primary" onclick="openTelegramLogin()">Telegram</button><button class="btn btn-secondary" onclick="alert(\'La connexion e-mail sera activée après la configuration de l’envoi sécurisé.\')">E-mail</button></div></div>';
     }
 
     function openTelegramLogin() {
