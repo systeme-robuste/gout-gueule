@@ -620,13 +620,13 @@
             return;
         }
         container.innerHTML = state.posts.map(post => {
-            const advancedHtml = post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : '';
-            const contentHtml = post.editorMode === 'advanced' ? ((post.blocks || []).some(b => b.type === 'markdown') ? advancedHtml : marked.parse(post.content || '') + advancedHtml) : marked.parse(post.content || '');
+            const advancedHtml = false && post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : '';
+            const contentHtml = false && post.editorMode === 'advanced' ? ((post.blocks || []).some(b => b.type === 'markdown') ? advancedHtml : marked.parse(post.content || '') + advancedHtml) : marked.parse(post.content || '');
             const reactions = Object.values(post.reactions || {});
             const likeCount = reactions.filter(r => r === 'like').length;
             const commentCount = (post.comments || []).length;
             const liked = localStorage.getItem('gg-like-' + post.id) === '1';
-            const mediaHtml = post.editorMode === 'advanced' ? '' : renderMedia(post.media);
+            const mediaHtml = renderMedia(post.media);
             const floatedMedia = (post.media || []).some(m => m.position === 'left' || m.position === 'right');
             return `
             <div class="card post-card" data-post-id="${post.id}">
