@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO de base -->
+    <title>Goût Gueule 🍽️ | Saveurs authentiques de Kinshasa</title>
+    <meta name="description" content="Goût Gueule — Le guide gourmand de Kinshasa. Découvrez les plats emblématiques de la RDC : fufu, pondu, poisson grillé, liboke. Recettes traditionnelles, restos et bonnes adresses de la capitale congolaise.">
+    <meta name="keywords" content="restaurant kinshasa, cuisine congolaise, plats traditionnels RDC, fufu, pondu, poisson grillé kinshasa, gastronomie kinshasa, recettes congolaises, liboke, madesu, RDC, Congo, guide culinaire kinshasa">
+    <meta name="author" content="Goût Gueule">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="French">
+    <meta name="geo.region" content="CD-KN">
+    <meta name="geo.placename" content="Kinshasa, République Démocratique du Congo">
+    <meta name="geo.position" content="-4.4419;15.2663">
+    <meta name="ICBM" content="-4.4419, 15.2663">
+    <link rel="canonical" href="https://gout-gueule-fcvr.onrender.com/">
+
+    <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Goût Gueule">
+    <meta property="og:title" content="Goût Gueule 🍽️ | Saveurs authentiques de Kinshasa">
+    <meta property="og:description" content="Le guide gourmand de Kinshasa. Plats traditionnels de la RDC, recettes authentiques et bonnes adresses de la capitale congolaise.">
+    <meta property="og:url" content="https://gout-gueule-fcvr.onrender.com/">
+    <meta property="og:image" content="https://gout-gueule-fcvr.onrender.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="fr_CD">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Goût Gueule 🍽️ | Saveurs authentiques de Kinshasa">
+    <meta name="twitter:description" content="Le guide gourmand de Kinshasa. Plats traditionnels de la RDC, recettes authentiques et bonnes adresses.">
+    <meta name="twitter:image" content="https://gout-gueule-fcvr.onrender.com/og-image.jpg">
+
+    <!-- Schema.org : Organization + Restaurant -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Restaurant",
+      "name": "Goût Gueule",
+      "image": "https://gout-gueule-fcvr.onrender.com/og-image.jpg",
+      "url": "https://gout-gueule-fcvr.onrender.com/",
+      "description": "Guide gourmand de Kinshasa — plats traditionnels de la RDC",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Kinshasa",
+        "addressCountry": "CD"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -4.4419,
+        "longitude": 15.2663
+      },
+      "servesCuisine": ["Congolese", "Central African"],
+      "priceRange": "$$"
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --rouge: #C0392B;
+            --rouge-fonce: #96241A;
+            --creme: #FAF7F2;
+            --brun: #2C1810;
+            --gris: #6B6B6B;
+            --gris-clair: #E8E3DC;
+            --or: #D4A853;
+            --surface: #F5F0EB;
+            --bg: var(--creme);
+            --text: var(--brun);
+            --card: #FFFFFF;
+            --border: var(--gris-clair);
+            --shadow: 0 2px 12px rgba(44, 24, 16, 0.12);
+            --nav-h: 44px;
+        }
+
+        [data-theme="dark"] {
+            --text: #F0EBE3;
+            --bg: #1A1008;
+            --card: #251510;
+            --surface: #2E1A0E;
+            --border: #3D2415;
+            --gris-clair: #3D2415;
+            --brun: #F0EBE3;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            line-height: 1.65;
+            transition: background 0.3s, color 0.3s;
+        }
+        h1, h2, h3, .brand { font-family: 'Playfair Display', serif; }
+        
+        a { color: var(--rouge); text-decoration: none; transition: color 0.2s; }
+        a:hover { color: var(--rouge-fonce); }
+
+        .container { max-width: 840px; margin: 0 auto; padding: 0 15px; }
+
+        /* Navigation */
+        .brand { display:flex; align-items:center; gap:8px; font-weight:800; }
+        .brand-logo { width:64px; height:64px; flex-shrink:0; object-fit:contain; border-radius:0; background:transparent; margin:-10px 0; position:relative; z-index:2; }
+        nav {
+            position: sticky; top: 0; z-index: 1000;
+            background: var(--rouge); height: var(--nav-h);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .ws-dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; }
+        .ws-dot.online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+
+        /* 🛡️ Protection médias */
+    .protected-media { position: relative; display: inline-block; max-width: 100%; }
+    .protected-media img, .protected-media video {
+      -webkit-user-select: none; -moz-user-select: none; user-select: none;
+      -webkit-user-drag: none; -khtml-user-drag: none; -moz-user-drag: none;
+      -o-user-drag: none; user-drag: none;
+      pointer-events: auto;
+    }
+    .protected-media::after {
+      content: ""; position: absolute; inset: 0; z-index: 5;
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><text x='50%' y='50%' fill='rgba(255,255,255,0.08)' font-size='14' font-family='sans-serif' text-anchor='middle' transform='rotate(-30 100 100)'>G\u00f4t Gueule \u00a9</text></svg>") repeat;
+      pointer-events: none; mix-blend-mode: overlay;
+    }
+    .visible-watermark {
+      position: absolute; bottom: 8px; right: 8px; z-index: 10;
+      background: rgba(0,0,0,0.5); color: white; padding: 3px 8px;
+      border-radius: 3px; font-size: 11px; font-weight: 600;
+      pointer-events: none;
+    }
+
+    /* 🛡️ Protection médias */
+    img.protected, video.protected {
+        -webkit-user-select: none; -moz-user-select: none; user-select: none;
+        -webkit-user-drag: none; -khtml-user-drag: none; -moz-user-drag: none;
+        -o-user-drag: none; user-drag: none;
+        pointer-events: auto;
+    }
+    .protected-wrap {
+        position: relative; display: inline-block; max-width: 100%;
+    }
+    .protected-wrap::after {
+        content: ""; position: absolute; inset: 0; z-index: 5;
+        background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><text x='50%' y='50%' fill='rgba(255,255,255,0.07)' font-size='12' font-family='sans-serif' text-anchor='middle' transform='rotate(-30 90 90)'>G\u00f4t Gueule \u00a9</text></svg>") repeat;
+        pointer-events: none; mix-blend-mode: overlay;
+    }
+    .protected-watermark {
+        position: absolute; bottom: 6px; right: 6px; z-index: 10;
+        background: rgba(0,0,0,0.45); color: white; padding: 2px 6px;
+        border-radius: 3px; font-size: 10px; font-weight: 600;
+        pointer-events: none; letter-spacing: 0.5px;
+    }
+    .protected-blur {
+        position: absolute; inset: 0; backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 20; display: none; cursor: pointer;
+        background: rgba(0,0,0,0.5); color: white;
+        align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 600;
+    }
+    .protected-blur::before { content: "🔒 Cliquer pour révéler"; }
+
+    /* Cover & Profile */
+        .cover {
+            height: 260px; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover; background-position: center; border-radius: 0 0 12px 12px;
+        }
+        .profile-wrap { margin-top: -36px; padding-bottom: 20px; }
+        .profile-card {
+            background: var(--card); border-radius: 12px; padding: 20px;
+            box-shadow: var(--shadow); position: relative;
+        }
+        .profile-logo {
+            width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--card);
+            position: absolute; top: -60px; left: 20px; object-fit: cover; background: white;
+        }
+        .profile-content { margin-left: 140px; }
+        .profile-name { font-size: 28px; font-weight: 900; }
+        .profile-bio { font-size: 14px; color: var(--gris); margin: 5px 0; }
+        
+        .profile-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn {
+            padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 6px; transition: 0.2s;
+        }
+        .btn-primary { background: var(--rouge); color: white; }
+        .btn-primary:hover { background: var(--rouge-fonce); }
+        .btn-secondary { background: var(--surface); color: var(--text); }
+
+        /* Layout */
+        .main-layout { display: flex; gap: 20px; margin-top: 20px; }
+        .sidebar { width: 270px; flex-shrink: 0; }
+        .feed { flex: 1; min-width: 0; }
+
+        .card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: var(--shadow); }
+        .card-title { font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .about-card { padding:0; overflow:hidden; border:1px solid var(--border); background:var(--card); }
+        .about-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; background:linear-gradient(135deg, rgba(192,57,43,.08), transparent); color:var(--text); text-align:left; cursor:pointer; font:inherit; margin:0; padding:16px; border:0; border-bottom:1px solid transparent; transition:background .2s ease,border-color .2s ease; }
+        .about-toggle:hover { background:linear-gradient(135deg, rgba(192,57,43,.16), rgba(192,57,43,.03)); }
+        .about-toggle span:first-child { display:flex; align-items:center; gap:9px; font-size:15px; letter-spacing:.2px; }
+        .about-toggle span:first-child::before { content:'✦'; color:var(--rouge); font-size:13px; }
+        .about-chevron { width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--border); border-radius:50%; color:var(--rouge); font-size:20px; line-height:14px; transition:transform .25s ease,background .2s ease; }
+        .about-toggle[aria-expanded="true"] { border-bottom-color:var(--border); }
+        .about-toggle[aria-expanded="true"] .about-chevron { transform:rotate(180deg); background:var(--rouge); color:#fff; border-color:var(--rouge); }
+        .about-content { overflow:hidden; padding:0 16px 16px; animation:aboutReveal .25s ease; }
+        .about-content.hidden { display:none; }
+        .about-content p { line-height:1.65; margin:14px 0 0; }
+        @keyframes aboutReveal { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Post Card */
+        .post-card { padding: 0; overflow: hidden; }
+        .post-header { padding: 12px 15px; display: flex; align-items: center; gap: 10px; }
+        .post-header img { width: 40px; height: 40px; border-radius: 50%; }
+        .post-info { flex: 1; }
+        .post-author { font-weight: 700; font-size: 14px; }
+        .post-meta { font-size: 12px; color: var(--gris); }
+        
+        .post-body { padding: 0 15px 15px; }
+        .post-title { font-size: 20px; margin-bottom: 10px; }
+        .post-content { font-size: 15px; }
+        .post-media { margin-top: 10px; display: grid; gap: 10px; }
+        .post-media img, .post-media video { width: 100%; border-radius: 8px; }
+        .post-media audio { width: 100%; min-height: 42px; } .advanced-block{display:block;max-width:100%;} .advanced-block figcaption{font-size:13px;color:var(--gris);margin-top:4px}.advanced-markdown{margin-bottom:12px}
+        .media-pdf { width: 100%; height: 520px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+        .protected-circle { width: min(280px, 72vw) !important; height: min(280px, 72vw); margin: 0 auto; border-radius: 50% !important; object-fit: cover; display: block; }
+        .media-file { display:flex; align-items:center; gap:10px; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); }
+        .media-file a { color:var(--rouge); font-weight:600; text-decoration:none; }
+        
+        .post-footer { border-top: 1px solid var(--border); display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; background:linear-gradient(180deg,transparent,var(--surface)); }
+        .post-footer button { flex:1 1 auto; min-width:82px; background:var(--card); border:1px solid var(--border); padding:9px 12px; color:var(--gris); font-weight:650; cursor:pointer; border-radius:999px; transition:all .2s ease; }
+        .post-footer button:hover { background:rgba(192,57,43,.08); color:var(--rouge); border-color:rgba(192,57,43,.3); transform:translateY(-1px); }
+        .post-footer button.active { color:#fff; background:var(--rouge); border-color:var(--rouge); box-shadow:0 3px 10px rgba(192,57,43,.25); }
+        .post-footer .count { font-size:12px; opacity:.8; }
+        .post-footer .reaction-like { flex:0 0 auto; min-width:66px; padding:8px 15px; display:inline-flex; justify-content:center; align-items:center; gap:8px; background:var(--card); color:var(--gris); border:1px solid var(--border); border-radius:999px; box-shadow:none; font-size:18px; }
+        .post-footer .reaction-like:hover { background:rgba(255,22,15,.08); color:var(--rouge); border-color:rgba(255,22,15,.3); transform:translateY(-1px) scale(1.02); }
+        .post-footer .reaction-like.active { background:#ff160f; color:#fff; border-color:#ff160f; box-shadow:0 5px 14px rgba(255,22,15,.28); }
+        .post-footer .reaction-like .count { font-size:16px; font-weight:800; opacity:1; }
+        .post-footer .reaction-dislike { flex:0 0 auto; min-width:42px; padding:7px 9px; border:0; background:transparent; color:var(--text); font-size:24px; line-height:1; }
+        .post-footer .reaction-dislike:hover, .post-footer .reaction-dislike.active { background:var(--surface); color:var(--rouge); transform:translateY(-1px); }
+        .share-button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+        .share-icon { display:inline-grid; place-items:center; width:22px; height:22px; border:1.5px solid currentColor; border-radius:50%; font-size:16px; font-weight:800; line-height:18px; }
+        .comment-button, .share-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+        .comment-icon { font-size:17px; }
+        .comments-section { padding:12px 15px 15px; border-top:1px solid var(--border); background:var(--surface); }
+        .comments-section.hidden { display:none; }
+        .comment { padding:9px 0; border-bottom:1px solid var(--border); }
+        .comment:last-child { border-bottom:0; }
+        .comment p { margin:4px 0 0; line-height:1.45; }
+        .comment-note { margin:10px 0 0; color:var(--gris); font-size:12px; }
+
+        .post-content.collapsible { transition: max-height 0.3s ease; }
+
+        .see-more-btn { background: none; border: none; color: var(--rouge); font-weight: 700; cursor: pointer; padding: 5px 0; font-size: 13px; }
+        .see-more-btn:hover { text-decoration: underline; }
+
+        .comments-section { border-top: 1px solid var(--border); padding: 12px 15px; background: var(--surface); border-radius: 0 0 12px 12px; }
+        .comments-list { max-height: 300px; overflow-y: auto; margin-bottom: 10px; }
+        .comment { padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .comment:last-child { border-bottom: none; }
+        .comment p { margin: 4px 0; font-size: 14px; }
+        .comment-time { font-size: 11px; color: var(--gris); margin-left: 6px; }
+        .comment.admin-comment { background: var(--card); padding: 8px 10px; border-radius: 8px; border-left: 3px solid var(--rouge); }
+        .comment strong { font-size: 13px; }
+
+        .comment-composer { display: flex; gap: 8px; margin-top: 8px; }
+        .comment-composer input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--card); color: var(--text); font-size: 14px; outline: none; }
+        .comment-composer input:focus { border-color: var(--rouge); }
+        .comment-composer button { padding: 8px 16px; font-size: 13px; }
+
+        .post-header { display: flex; align-items: center; gap: 10px; }
+        .post-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--surface); }
+
+        /* Stories */
+        .stories-row { 
+            display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; 
+            scrollbar-width: none;
+        }
+        .stories-row::-webkit-scrollbar { display: none; }
+        .story-thumb {
+            width: 82px; height: 130px; flex-shrink: 0; border-radius: 12px;
+            background: #000; position: relative; border: 2px solid var(--rouge);
+            cursor: pointer; overflow: hidden;
+        }
+        .story-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .story-text { 
+            position: absolute; bottom: 5px; left: 5px; right: 5px; 
+            color: white; font-size: 10px; font-weight: 600; 
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-card {
+            background: var(--card); border-radius: 12px; width: 95%; max-width: 500px;
+            padding: 20px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        
+        /* Utility */
+        .hidden { display: none !important; }
+        input, textarea, select {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--surface); color: var(--text); outline: none; margin-bottom: 10px;
+        }
+        
+        @media (max-width: 660px) {
+            .main-layout { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .profile-content { margin-left: 0; margin-top: 60px; text-align: center; }
+            .profile-logo { left: 50%; transform: translateX(-50%); }
+            .profile-actions { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="brand"><img src="/gout-gueule-logo.png" alt="Logo Goût Gueule" class="brand-logo"> <span>Goût Gueule</span></div>
+    <div class="nav-right">
+        <div id="wsStatus" class="ws-dot" title="WebSocket Status"></div>
+        <button class="btn btn-secondary" onclick="toggleTheme()" style="padding: 5px 10px;">🌙</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="cover" id="pageCover"></div>
+    
+    <div class="profile-wrap">
+        <div class="profile-card">
+            <img src="/gout-gueule-logo.png" id="profileLogo" class="profile-logo" alt="Logo Goût Gueule">
+            <div class="profile-content">
+                <h1 class="profile-name" id="pageName">Goût Gueule</h1>
+                <p class="profile-bio" id="pageBio">Chargement...</p>
+                <div class="profile-actions">
+                    <button class="btn btn-primary">👍 J'aime</button>
+                    <button class="btn btn-secondary" id="followBtn" onclick="toggleFollow()">Suivre <span id="followersCount">0</span></button>
+                    <button class="btn btn-secondary" id="adminTabBtn" onclick="showTab('admin')" style="display:none">⚙️ Admin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stories-row" id="storiesList">
+        <!-- Stories injected here -->
+    </div>
+
+    <div class="main-layout">
+        <aside class="sidebar">
+            <div class="card about-card">
+                <button class="card-title about-toggle" type="button" onclick="toggleAbout()" aria-expanded="false" aria-controls="aboutContent">
+                    <span>À propos</span><span id="aboutChevron" class="about-chevron" aria-hidden="true">⌄</span>
+                </button>
+                <div id="aboutContent" class="about-content hidden">
+                    <p id="sidebarBio" style="font-size: 14px;"></p>
+                    <div id="socialLinks" style="display:flex; flex-wrap:wrap; gap:5px; margin-top:10px;"></div>
+                </div>
+            </div>
+            
+        </aside>
+
+        <main class="feed" id="feed">
+            <div id="adminTab" class="hidden">
+                <div class="card">
+                    <div class="card-title">Tableau de bord Admin</div>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:10px;" id="adminStats">
+                        <!-- Stats boxes -->
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🎨 Personnalisation de la page</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="font-size:12px; color: var(--gris); font-weight:600;">Photo de profil (logo)</label>
+                            <div style="display:flex; gap:10px; align-items:center; margin:5px 0;">
+                                <img id="logoPreview" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--card);">
+                                <input type="file" id="logoFile" accept="image/*" style="flex:1;">
+                            </div>
+                            <button class="btn btn-secondary" onclick="uploadPageLogo()" style="margin-top:5px;">📤 Téléverser le logo</button>
+                        </div>
+                        <div>
+                            <label style="font-size:12px; color: var(--gris); font-weight:600;">Photo de couverture</label>
+                            <div style="margin:5px 0;">
+                                <img id="coverPreview" src="https://via.placeholder.com/300x100" style="width:100%; height:100px; object-fit:cover; border-radius:8px;">
+                                <input type="file" id="coverFile" accept="image/*" style="margin-top:5px; width:100%;">
+                            </div>
+                            <button class="btn btn-secondary" onclick="uploadPageCover()" style="margin-top:5px;">📤 Téléverser la couverture</button>
+                        </div>
+                    </div>
+                    <hr style="border:0; border-top:1px solid var(--border); margin: 15px 0;">
+                    <label style="font-size:12px; color: var(--gris); font-weight:600;">Nom de la page</label>
+                    <input type="text" id="settingsPageName" placeholder="Goût Gueule" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); margin:5px 0 10px;">
+                    <label style="font-size:12px; color: var(--gris); font-weight:600;">À propos (bio publique)</label>
+                    <textarea id="settingsBio" placeholder="Présentez votre page, votre histoire, votre passion..." rows="4" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); margin:5px 0 10px; resize:vertical;"></textarea>
+                    <label style="font-size:12px; color: var(--gris); font-weight:600;">Catégorie / Tagline</label>
+                    <input type="text" id="settingsCategory" placeholder="Gastronomie kinoise" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); margin:5px 0 10px;">
+                    <label style="font-size:12px; color: var(--gris); font-weight:600;">Localisation</label>
+                    <input type="text" id="settingsLocation" placeholder="Kinshasa, RDC" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); margin:5px 0 10px;">
+                    <button class="btn btn-primary" onclick="savePageSettings()">💾 Enregistrer les infos</button>
+                </div>
+                <div class="card">
+                    <div class="card-title">Actions Rapides</div>
+                    <button class="btn btn-primary" onclick="showTab('feed')">Retour au fil</button>
+                    <button class="btn btn-secondary" onclick="syncCMS('wordpress')">Sync WordPress</button>
+                </div>
+            </div>
+
+            <div id="feedTab">
+                <div id="adminComposer" class="card hidden">
+                    <div class="card-title">Publier quelque chose</div>
+                    <input type="text" id="postTitle" placeholder="Titre de la publication">
+                    <textarea id="postContent" placeholder="Quoi de neuf ? (Markdown supporté)" style="min-height: 120px;"></textarea>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <input type="file" id="postFiles" multiple style="width: auto; margin: 0;">
+                        <button class="btn btn-primary" onclick="publishPost()">Publier</button>
+                    </div>
+                    <div id="publishStatus" style="margin-top:10px; font-size:13px; min-height:18px;"></div>
+                </div>
+                <div id="postsList">
+                    <p style="text-align: center; padding: 20px;">Chargement des publications...</p>
+                </div>
+            </div>
+    </div>
+</main>
+
+<!-- Interface publique : aucune connexion ni CMS exposé -->
+<script>
+    let state = {
+        user: null,
+        posts: [],
+        stories: [],
+        settings: {},
+        ws: null
+    };
+
+    async function init() {
+        await loadSettings();
+        await loadFollowers();
+        await loadPosts();
+        await loadStories();
+        setupWS();
+    }
+
+    async function api(path, method = 'GET', body = null) {
+        const options = { method, headers: {}, credentials: 'include' };
+        if (body && !(body instanceof FormData)) {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(body);
+        } else if (body) {
+            options.body = body;
+        }
+        const res = await fetch(path, options);
+        return res.json();
+    }
+
+    async function checkAuth() {
+        const data = await api('/api/auth/me');
+        state.user = data.user;
+        renderAuth();
+    }
+
+    function renderAuth() {
+        const navAuth = document.getElementById('navAuth');
+        const adminComposer = document.getElementById('adminComposer');
+        const adminTabBtn = document.getElementById('adminTabBtn');
+
+        if (state.user) {
+            navAuth.innerHTML = `<span style="font-size:14px; margin-right:10px;">Salut, ${state.user.name}</span>
+                                <button class="btn btn-secondary" onclick="logout()">Déconnexion</button>`;
+            if (state.user.name === 'Admin') {
+                adminComposer.classList.remove('hidden');
+                adminTabBtn.style.display = 'flex';
+            }
+        } else {
+            navAuth.innerHTML = `<button class="btn btn-primary" onclick="openModal('authModal')">Connexion</button>`;
+            adminComposer.classList.add('hidden');
+            adminTabBtn.style.display = 'none';
+        }
+    }
+
+    async function login() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPass').value;
+        const data = await api('/api/auth/login', 'POST', { email, password });
+        if (data.success) {
+            closeModal('authModal');
+            await checkAuth();
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    }
+
+    async function logout() {
+        await api('/api/auth/logout', 'POST');
+        state.user = null;
+        renderAuth();
+    }
+
+    async function loadSettings() {
+        const data = await api('/api/settings');
+        state.settings = data;
+        document.getElementById('pageName').innerText = data.pageName || 'Goût Gueule';
+        document.getElementById('pageBio').innerText = data.bio || '';
+        document.getElementById('sidebarBio').innerText = data.bio || '';
+        if (data.logoUrl) document.getElementById('profileLogo').src = data.logoUrl;
+        if (data.coverUrl) {
+            const cover = document.querySelector('.cover');
+            if (cover) cover.style.backgroundImage = `url('${data.coverUrl}')`;
+        }
+        if (data.category) {
+            const existing = document.getElementById('pageCategory');
+            if (existing) existing.innerText = data.category;
+            else {
+                const catEl = document.createElement('div');
+                catEl.id = 'pageCategory';
+                catEl.style.cssText = 'font-size:12px; color: var(--gris); font-weight:500; margin-top:2px;';
+                catEl.innerText = data.category;
+                document.querySelector('.profile-content').insertBefore(catEl, document.querySelector('.profile-actions'));
+            }
+        }
+        if (data.location) {
+            let loc = document.getElementById('pageLocation');
+            if (!loc) {
+                loc = document.createElement('div');
+                loc.id = 'pageLocation';
+                loc.style.cssText = 'font-size:12px; color: var(--gris); margin-top:2px;';
+                document.querySelector('.profile-content').insertBefore(loc, document.querySelector('.profile-actions'));
+            }
+            loc.innerHTML = '📍 ' + data.location;
+        }
+    }
+
+    function visitorId() { let id = localStorage.getItem('gg_visitor_id'); if (!id) { id = crypto.randomUUID ? crypto.randomUUID() : 'v-' + Math.random().toString(36).slice(2); localStorage.setItem('gg_visitor_id', id); } return id; }
+    async function loadFollowers() { const id = visitorId(); const data = await api('/api/followers'); const count = document.getElementById('followersCount'); const btn = document.getElementById('followBtn'); if (count) count.innerText = data.count || 0; if (btn) btn.firstChild.textContent = data.following ? 'Suivi ' : 'Suivre '; }
+    async function toggleFollow() { const data = await api('/api/followers/toggle', 'POST', { visitorId: visitorId() }); const count = document.getElementById('followersCount'); const btn = document.getElementById('followBtn'); if (count) count.innerText = data.count || 0; if (btn) btn.firstChild.textContent = data.following ? 'Suivi ' : 'Suivre '; }
+
+    async function loadAdminSettingsForm() {
+        const data = await api('/api/admin/settings');
+        document.getElementById('settingsPageName').value = data.pageName || '';
+        document.getElementById('settingsBio').value = data.bio || '';
+        document.getElementById('settingsCategory').value = data.category || '';
+        document.getElementById('settingsLocation').value = data.location || '';
+        if (data.logoUrl) document.getElementById('logoPreview').src = data.logoUrl;
+        if (data.coverUrl) document.getElementById('coverPreview').src = data.coverUrl;
+    }
+
+    async function savePageSettings() {
+        const body = {
+            pageName: document.getElementById('settingsPageName').value,
+            bio: document.getElementById('settingsBio').value,
+            category: document.getElementById('settingsCategory').value,
+            location: document.getElementById('settingsLocation').value
+        };
+        const data = await api('/api/admin/settings', 'POST', body);
+        if (data.success) {
+            await loadSettings();
+            alert('✅ Page mise à jour avec succès');
+        }
+    }
+
+    async function uploadPageLogo() {
+        const fileInput = document.getElementById('logoFile');
+        if (!fileInput.files[0]) return alert('Sélectionnez d\'abord une image');
+        const fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        const res = await fetch('/api/admin/settings/logo', { method: 'POST', body: fd, credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('logoPreview').src = data.logoUrl + '?t=' + Date.now();
+            await loadSettings();
+            alert('✅ Logo mis à jour');
+        } else {
+            alert('❌ Erreur: ' + (data.error || 'inconnue'));
+        }
+    }
+
+    async function uploadPageCover() {
+        const fileInput = document.getElementById('coverFile');
+        if (!fileInput.files[0]) return alert('Sélectionnez d\'abord une image');
+        const fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        const res = await fetch('/api/admin/settings/cover', { method: 'POST', body: fd, credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('coverPreview').src = data.coverUrl + '?t=' + Date.now();
+            await loadSettings();
+            alert('✅ Couverture mise à jour');
+        } else {
+            alert('❌ Erreur: ' + (data.error || 'inconnue'));
+        }
+    }
+
+    async function loadPosts() {
+        const posts = await api('/api/posts');
+        state.posts = posts;
+        renderPosts();
+    }
+
+    function safeCommentText(value) { return String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+    function renderComments(comments, postId, parentId = null, level = 0) {
+        return (comments || []).filter(c => (c.parentId || null) === parentId).map(c => `<div class="comment" style="margin-left:${Math.min(level,3)*18}px"><strong>${safeCommentText(c.userName || 'Visiteur')}</strong><span class="comment-time">${new Date(c.createdAt).toLocaleString()}</span><p>${safeCommentText(c.content)}</p><button class="btn btn-secondary" style="font-size:11px;padding:3px 8px" onclick="replyToComment('${postId}','${c.id}')">Répondre</button>${renderComments(comments, postId, c.id, level + 1)}</div>`).join('');
+    }
+    function replyToComment(postId, commentId) { const input = document.getElementById('comment-input-' + postId); if (input) { input.dataset.parentId = commentId; input.placeholder = 'Répondre à ce commentaire…'; input.focus(); } }
+
+    function renderPosts() {
+        const container = document.getElementById('postsList');
+        if (state.posts.length === 0) {
+            container.innerHTML = `<p style="text-align:center; padding:40px;">Aucune publication pour le moment.</p>`;
+            return;
+        }
+        container.innerHTML = state.posts.map(post => {
+            const contentHtml = post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : marked.parse(post.content || '');
+            const reactions = Object.values(post.reactions || {});
+            const likeCount = reactions.filter(r => r === 'like').length;
+            const commentCount = (post.comments || []).length;
+            const liked = localStorage.getItem('gg-like-' + post.id) === '1';
+            const mediaHtml = post.editorMode === 'advanced' ? '' : renderMedia(post.media);
+            const floatedMedia = (post.media || []).some(m => m.position === 'left' || m.position === 'right');
+            return `
+            <div class="card post-card" data-post-id="${post.id}">
+                <div class="post-header">
+                    <img src="${state.settings.logoUrl || 'https://via.placeholder.com/40'}" onerror="this.src='https://via.placeholder.com/40'">
+                    <div class="post-info">
+                        <div class="post-author">${state.settings.pageName || 'Goût Gueule'} ${post.pinned ? '📌' : ''}</div>
+                        <div class="post-meta">${new Date(post.createdAt).toLocaleString()} • 👁️ ${post.views || 0}</div>
+                    </div>
+                    ${state.user && state.user.name === 'Admin' ? `<button onclick="deletePost('${post.id}')" style="margin-left:auto; background:none; border:none; color:var(--gris); cursor:pointer; font-size:14px;">🗑️</button>` : ''}
+                </div>
+                <div class="post-body">
+                    <h2 class="post-title"><a href="/post/${post.id}" style="color:inherit; text-decoration:none;" onmouseover="this.style.color='var(--rouge)'" onmouseout="this.style.color='inherit'">${post.title}</a></h2>
+                    <div class="post-content collapsible" data-collapsed="true">${contentHtml}</div>
+                    <button class="see-more-btn" onclick="toggleSeeMore(this)" style="display:none;">Voir plus</button>
+                    ${mediaHtml}
+                </div>
+                <div class="post-footer">
+                    <button class="action-btn reaction-like ${liked ? 'active' : ''}" onclick="react('${post.id}', 'like')" aria-label="J’aime">
+                        👍 <span class="count">${likeCount}</span>
+                    </button>
+                    <button class="action-btn comment-button" onclick="toggleComments('${post.id}')" aria-label="Commenter">
+                        <span class="comment-icon">💬</span> Commenter <span class="count">(${commentCount})</span>
+                    </button>
+                    <button class="action-btn share-button" onclick="sharePost('${post.id}')" aria-label="Partager">
+                        <span class="share-icon">↗</span> Partager <span class="count">(${post.shares || 0})</span>
+                    </button>
+                </div>
+                <div id="comments-${post.id}" class="comments-section hidden">
+                    <div class="comments-list">
+                        ${renderComments(post.comments, post.id) || '<p class="muted">Aucun commentaire pour le moment.</p>'}
+                    </div>
+                    <div class="comment-composer"><input id="comment-input-${post.id}" placeholder="Écrire un commentaire…" onkeydown="if(event.key==='Enter') addComment('${post.id}')"><button class="btn btn-primary" onclick="addComment('${post.id}')">Publier</button></div>
+                    <p class="comment-note">💬 Les commentaires suspects sont placés en quarantaine pour validation.</p>
+                </div>
+            </div>
+        `}).join('');
+        // After rendering, wire up see-more logic
+        document.querySelectorAll('.post-content.collapsible').forEach(setupSeeMore);
+    }
+
+    // Setup "Voir plus" on long posts
+    function setupSeeMore(el) {
+        const btn = el.parentElement.querySelector('.see-more-btn');
+        if (!btn) return;
+        // Create a clone offscreen to measure full height
+        const clone = el.cloneNode(true);
+        clone.style.cssText = 'position:absolute; visibility:hidden; height:auto; max-height:none; width:' + el.offsetWidth + 'px;';
+        document.body.appendChild(clone);
+        const fullHeight = clone.scrollHeight;
+        document.body.removeChild(clone);
+        const maxCollapsed = 200;
+        if (fullHeight > maxCollapsed + 20) {
+            el.style.maxHeight = maxCollapsed + 'px';
+            el.style.overflow = 'hidden';
+            btn.style.display = 'inline-block';
+            btn.textContent = 'Voir plus';
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+
+    function toggleSeeMore(btn) {
+        const content = btn.parentElement.querySelector('.post-content.collapsible');
+        const collapsed = content.dataset.collapsed === 'true';
+        if (collapsed) {
+            content.style.maxHeight = 'none';
+            content.style.overflow = 'visible';
+            content.dataset.collapsed = 'false';
+            btn.textContent = 'Voir moins';
+        } else {
+            content.style.maxHeight = '200px';
+            content.style.overflow = 'hidden';
+            content.dataset.collapsed = 'true';
+            btn.textContent = 'Voir plus';
+        }
+    }
+
+    // --- Reactions ---
+    async function react(postId, emoji) {
+        if (localStorage.getItem('gg-' + emoji + '-' + postId) === '1') return;
+        const res = await fetch(`/api/posts/${postId}/react`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ emoji })
+        });
+        const data = await res.json();
+        if (data.success) {
+            const key = 'gg-' + emoji + '-' + postId;
+            const wasActive = localStorage.getItem(key) === '1';
+            localStorage.setItem(key, wasActive ? '0' : '1');
+            if (!wasActive) localStorage.setItem('gg-' + (emoji === 'like' ? 'dislike' : 'like') + '-' + postId, '0');
+            const post = state.posts.find(p => p.id === postId);
+            if (post) post.reactions = data.reactions;
+            renderPosts();
+        } else {
+            alert('Erreur: ' + (data.error || 'inconnue'));
+        }
+    }
+
+    // --- Share ---
+    async function sharePost(postId) {
+        const post = state.posts.find(p => p.id === postId);
+        if (!post) return;
+        const url = `${window.location.origin}/#post-${postId}`;
+        // Try native share API first
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: post.title,
+                    text: (post.content || '').slice(0, 100) + '...',
+                    url
+                });
+            } catch (e) { /* user cancelled */ }
+        }
+        // Always bump counter (backend tracks even if user cancels)
+        const res = await fetch(`/api/posts/${postId}/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: '{}'
+        });
+        const data = await res.json();
+        if (data.success) {
+            post.shares = data.shares;
+        }
+        // Also copy to clipboard
+        try {
+            await navigator.clipboard.writeText(url);
+        } catch (e) { /* ignore */ }
+        renderPosts();
+    }
+
+    // --- Comments ---
+    async function toggleComments(postId) {
+        const section = document.getElementById('comments-' + postId);
+        section.classList.toggle('hidden');
+        if (!section.classList.contains('hidden')) {
+            const input = document.getElementById('comment-input-' + postId);
+            if (input) input.focus();
+        }
+    }
+
+    async function addComment(postId) {
+        const input = document.getElementById('comment-input-' + postId);
+        const content = input.value.trim();
+        if (!content) return;
+        const res = await fetch(`/api/posts/${postId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ content, parentId: input.dataset.parentId || null })
+        });
+        const data = await res.json();
+        if (data.id) {
+            input.value = '';
+            delete input.dataset.parentId;
+            input.placeholder = 'Écrire un commentaire…';
+            const post = state.posts.find(p => p.id === postId);
+            if (post) {
+                if (!post.comments) post.comments = [];
+                post.comments.push(data);
+            }
+            renderPosts();
+            // Re-open this post's comments section
+            document.getElementById('comments-' + postId).classList.remove('hidden');
+        } else {
+            alert('Erreur: ' + (data.error || 'inconnue'));
+        }
+    }
+
+    // --- Delete post (admin) ---
+    async function deletePost(postId) {
+        if (!confirm('Supprimer cette publication ?')) return;
+        const res = await fetch(`/api/admin/posts/${postId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if (data.success) {
+            await loadPosts();
+        } else {
+            alert('Erreur: ' + (data.error || 'inconnue'));
+        }
+    }
+
+    function renderAdvancedBlocks(blocks, media) {
+        return (blocks || []).map(b => {
+            const m = Number.isInteger(b.mediaIndex) ? media[b.mediaIndex] : null;
+            const esc = v => safeCommentText(v);
+            const style = `width:${Math.max(20, Math.min(100, Number(b.size)||100))}%;margin:${b.position==='left'?'0 auto 16px 0':b.position==='right'?'0 0 16px auto':'0 auto 16px'};`;
+            if (b.type === 'markdown') return `<div class="advanced-markdown">${marked.parse(b.text || '')}</div>`;
+            if (!m) return '';
+            const cap = esc(b.caption || m.caption || '');
+            if (b.type === 'image') return `<figure class="advanced-block" style="${style}"><img class="protected" src="${esc(m.url)}" alt="${cap}" loading="lazy" draggable="false"><figcaption>${cap}</figcaption></figure>`;
+            if (b.type === 'audio') return `<figure class="advanced-block" style="${style}"><audio controls src="${esc(m.url)}"></audio><figcaption>${cap}</figcaption></figure>`;
+            if (b.type === 'pdf') return `<figure class="advanced-block" style="${style}"><iframe src="${esc(m.url)}" title="${cap||'PDF'}" style="width:100%;height:520px"></iframe><figcaption>${cap}</figcaption></figure>`;
+            return `<figure class="advanced-block" style="${style}"><video controls src="${esc(m.url)}" ${b.type==='video_note'?'style="aspect-ratio:1;border-radius:50%;object-fit:cover"':'style="width:100%"'}></video><figcaption>${cap}</figcaption></figure>`;
+        }).join('');
+    }
+
+    function renderMedia(media) {
+        if (!media || media.length === 0) return '';
+        return `<div class="post-media">
+            ${media.map(m => {
+                const position = 'width:100%; margin:0 auto;';
+                if (m.type === 'image') return `<div class="protected-wrap" data-sign-url="${m.url}" style="${position}"><img class="protected" src="${m.url}" loading="lazy" alt="${m.caption || ''}" draggable="false" oncontextmenu="return false" referrerpolicy="no-referrer"><div class="protected-watermark">Goût Gueule</div>${m.caption ? `<small>${m.caption}</small>` : ''}</div>`;
+                if (m.type === 'video' || m.type === 'video_note') return `<div class="protected-wrap" data-sign-url="${m.url}"><video class="protected ${m.type === 'video_note' ? 'protected-circle' : ''}" src="${m.url}" controls preload="metadata" controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false"></video><div class="protected-watermark">Goût Gueule</div></div>`;
+                if (m.type === 'audio') return `<div class="protected-wrap" data-sign-url="${m.url}"><audio src="${m.url}" controls preload="metadata"></audio></div>`;
+                if (m.type === 'pdf') return `<div class="protected-wrap" data-sign-url="${m.url}"><iframe class="media-pdf" src="${m.url}" title="${m.name || 'PDF'}"></iframe><div class="media-file">📄 <a href="${m.url}" data-media-link target="_blank" rel="noopener">Ouvrir le PDF</a></div></div>`;
+                return `<div class="protected-wrap" data-sign-url="${m.url}"><div class="media-file">📎 <strong>${m.name || 'Fichier'}</strong><a href="${m.url}" data-media-link target="_blank" rel="noopener">Ouvrir / télécharger</a></div></div>`;
+            }).join('')}
+        </div>`;
+    }
+
+    async function publishPost() {
+        const title = document.getElementById('postTitle').value.trim();
+        const content = document.getElementById('postContent').value.trim();
+        const files = document.getElementById('postFiles').files;
+        const status = document.getElementById('publishStatus');
+
+        if (!title) {
+            status.innerHTML = '<span style="color:#e74c3c;">❌ Le titre est obligatoire</span>';
+            return;
+        }
+        status.innerHTML = '<span style="color:#999;">⏳ Publication en cours...</span>';
+
+        const fd = new FormData();
+        fd.append('title', title);
+        fd.append('content', content);
+        fd.append('tags', '[]');  // tags par défaut vide (pas de tags UI pour l'instant)
+        fd.append('published', 'true');
+        for (let f of files) fd.append('files', f);
+
+        try {
+            const res = await fetch('/api/admin/posts', {
+                method: 'POST',
+                body: fd,
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (res.ok && data.id) {
+                status.innerHTML = '<span style="color:#27ae60;">✅ Article publié !</span>';
+                document.getElementById('postTitle').value = '';
+                document.getElementById('postContent').value = '';
+                document.getElementById('postFiles').value = '';
+                await loadPosts();
+                setTimeout(() => status.innerHTML = '', 3000);
+            } else {
+                status.innerHTML = '<span style="color:#e74c3c;">❌ Erreur: ' + (data.error || res.status) + '</span>';
+                console.error('publish failed', res.status, data);
+            }
+        } catch (e) {
+            status.innerHTML = '<span style="color:#e74c3c;">❌ Réseau: ' + e.message + '</span>';
+            console.error('publish exception', e);
+        }
+    }
+
+    async function loadStories() {
+        const stories = await api('/api/stories');
+        const container = document.getElementById('storiesList');
+        if (stories.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        container.style.display = 'flex';
+        container.innerHTML = stories.map(s => `
+            <div class="story-thumb" onclick="viewStory('${s.id}')">
+                ${s.mediaUrl ? `<img src="${s.mediaUrl}">` : `<div style="background:${s.bgColor}; height:100%;"></div>`}
+                <div class="story-text">${s.text}</div>
+            </div>
+        `).join('');
+    }
+
+    function setupWS() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        state.ws = new WebSocket(`${protocol}//${window.location.host}`);
+        const dot = document.getElementById('wsStatus');
+        
+        state.ws.onopen = () => dot.classList.add('online');
+        state.ws.onclose = () => {
+            dot.classList.remove('online');
+            setTimeout(setupWS, 5000);
+        };
+        state.ws.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            if (msg.type === 'new_post') loadPosts();
+            if (msg.type === 'new_story') loadStories();
+        };
+    }
+
+    function toggleAbout() {
+        const content = document.getElementById('aboutContent');
+        const toggle = document.querySelector('.about-toggle');
+        if (!content || !toggle) return;
+        const open = content.classList.toggle('hidden') === false;
+        toggle.setAttribute('aria-expanded', String(open));
+    }
+
+    function toggleTheme() {
+        const html = document.documentElement;
+        const theme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', theme);
+        localStorage.setItem('gg-theme', theme);
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // Init Theme
+    const savedTheme = localStorage.getItem('gg-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    async function showTab(tab) {
+        document.getElementById('feedTab').classList.add('hidden');
+        document.getElementById('adminTab').classList.add('hidden');
+        
+        if (tab === 'admin') {
+            document.getElementById('adminTab').classList.remove('hidden');
+            const stats = await api('/api/admin/stats');
+            const container = document.getElementById('adminStats');
+            container.innerHTML = Object.entries(stats).map(([k, v]) => `
+                <div style="background:var(--surface); padding:10px; border-radius:8px; text-align:center;">
+                    <div style="font-size:12px; color:var(--gris); text-transform:uppercase;">${k}</div>
+                    <div style="font-size:20px; font-weight:700;">${v}</div>
+                </div>
+            `).join('');
+            await loadAdminSettingsForm();
+        } else {
+            document.getElementById('feedTab').classList.remove('hidden');
+        }
+    }
+
+    async function syncCMS(source) {
+        const config = prompt('Entrez l\'URL de votre WordPress (ex: https://monsite.com)');
+        if (!config) return;
+        const res = await api('/api/admin/cms/sync', 'POST', { 
+            source, 
+            config: { url: config, username: 'admin', appPassword: 'xxxx xxxx xxxx xxxx' } 
+        });
+        alert(res.success ? `Import réussi: ${res.count} articles` : `Erreur: ${res.error}`);
+        await loadPosts();
+    }
+
+    init();
+
+    // 🛡️ SYSTÈME DE PROTECTION MULTICOUCHE ANTI-VOL DE MÉDIAS
+    const _sign = (() => {
+        const cache = new Map();
+        return async (url) => {
+            if (!url || !url.startsWith('/uploads/')) return url;
+            if (cache.has(url)) return cache.get(url);
+            try {
+                const r = await fetch('/api/media/sign?url=' + encodeURIComponent(url), { credentials: 'include' });
+                const d = await r.json();
+                const signed = d.url || url;
+                cache.set(url, signed);
+                return signed;
+            } catch (e) {
+                return url;
+            }
+        };
+    })();
+
+    // 🛡️ Empêcher clic-droit sur tous les médias (photos, vidéos, logos)
+    document.addEventListener('contextmenu', (e) => {
+        const t = e.target;
+        if (t.tagName === 'IMG' || t.tagName === 'VIDEO' ||
+            t.closest('.post-media') || t.closest('.protected-media') ||
+            t.closest('.profile-logo') || t.closest('.post-header img')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // 🛡️ Empêcher le drag-and-drop des images vers le bureau
+    document.addEventListener('dragstart', (e) => {
+        if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // 🛡️ Empêcher la sélection sur les médias
+    document.addEventListener('selectstart', (e) => {
+        if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // 🛡️ Empêcher copie/coller du contenu public (les champs de formulaire restent utilisables)
+    function isEditableTarget(target) {
+        return target && (target.closest('input, textarea, select, [contenteditable="true"]') || target.isContentEditable);
+    }
+    ['copy', 'cut'].forEach(type => document.addEventListener(type, (e) => {
+        if (!isEditableTarget(e.target)) {
+            e.preventDefault();
+            fetch('/api/events/copy-attempt', { method: 'POST', credentials: 'include' }).catch(() => {});
+        }
+    }));
+    document.addEventListener('paste', (e) => {
+        if (!isEditableTarget(e.target)) e.preventDefault();
+    });
+
+    // 🛡️ Bloquer Ctrl+C / Ctrl+X / Ctrl+A sur le contenu, mais pas dans les formulaires
+    // (la protection ne concerne pas les champs de recherche ou d’écriture)
+    document.addEventListener('keydown', (e) => {
+        if (!isEditableTarget(e.target) && (e.ctrlKey || e.metaKey) && ['c', 'x', 'a'].includes(e.key.toLowerCase())) {
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+
+    // 🛡️ Bloquer Ctrl+S / Ctrl+U / F12 / Ctrl+Shift+I / Ctrl+Shift+J (devtools shortcuts)
+    document.addEventListener('keydown', (e) => {
+        const blocked = (
+            (e.ctrlKey && (e.key === 's' || e.key === 'S' || e.key === 'u' || e.key === 'U')) ||
+            (e.key === 'F12') ||
+            (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) ||
+            // Mac : Cmd+S, Cmd+Option+U, Cmd+Option+I
+            (e.metaKey && (e.key === 's' || e.key === 'S')) ||
+            (e.metaKey && e.altKey && (e.key === 'u' || e.key === 'i'))
+        );
+        if (blocked) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    });
+
+    // 🛡️ Détecter l'ouverture des DevTools (heuristique)
+    let _devtoolsWarned = false;
+    setInterval(() => {
+        const wDiff = window.outerWidth - window.innerWidth;
+        const hDiff = window.outerHeight - window.innerHeight;
+        if ((wDiff > 160 || hDiff > 160) && !_devtoolsWarned) {
+            _devtoolsWarned = true;
+            // Log discret côté admin via une requête silencieuse
+            fetch('/api/events/devtools-detected', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ts: Date.now() })
+            }).catch(() => {});
+            // Notification console (silencieuse pour l'utilisateur mais visible si on ouvre la console)
+            console.log('%c🔒 Goût Gueule — Contenu protégé', 'color:#C0392B; font-size:20px; font-weight:bold;');
+            console.log('%cLe contenu de cette page (textes, photos, vidéos) est protégé par le droit d\'auteur. Toute reproduction non autorisée est interdite.', 'color:#666; font-size:14px;');
+        }
+    }, 1000);
+
+    // 🛡️ Empêcher l'enregistrement via le menu natif (Partage → Enregistrer)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // À chaque fois que la page perd le focus (alerte screenshot probable)
+            fetch('/api/events/screenshot-attempt', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ts: Date.now(), hidden: true })
+            }).catch(() => {});
+        }
+    });
+
+    // 🛡️ Media signing — convertit /uploads/xxx en /media/<token> côté client
+    //    Le token est valide 1h et lié à la session
+    const _signCache = new Map();
+    async function signMediaUrl(url) {
+        if (!url || !url.startsWith('/uploads/')) return url;
+        if (_signCache.has(url)) return _signCache.get(url);
+        try {
+            const r = await fetch('/api/media/sign?url=' + encodeURIComponent(url), { credentials: 'include' });
+            if (!r.ok) return url;
+            const d = await r.json();
+            const signed = d.url || url;
+            _signCache.set(url, signed);
+            return signed;
+        } catch (e) { return url; }
+    }
+
+    // 🛡️ Après le render, on signe tous les médias (images, vidéos, avatars, covers)
+    async function protectAllMedia() {
+        // Pour les <div class="protected-wrap" data-sign-url>
+        const wraps = document.querySelectorAll('.protected-wrap[data-sign-url]');
+        for (const wrap of wraps) {
+            if (wrap.dataset.signed === '1') continue;
+            const orig = wrap.getAttribute('data-sign-url');
+            const signed = await signMediaUrl(orig);
+            const media = wrap.querySelector('img, video, audio, iframe');
+            const link = wrap.querySelector('[data-media-link]');
+            if (media) media.src = signed;
+            if (link) link.href = signed;
+            if (media || link) wrap.dataset.signed = '1';
+        }
+        // Pour les <img src="/uploads/..."> hors posts (logos, avatars, covers)
+        document.querySelectorAll('img[src^="/uploads/"]').forEach(async (img) => {
+            if (img.dataset.signed === '1') return;
+            const o = img.getAttribute('src');
+            if (o && o.startsWith('/uploads/')) {
+                img.src = await signMediaUrl(o);
+                img.setAttribute('draggable', 'false');
+                img.setAttribute('oncontextmenu', 'return false');
+                img.dataset.signed = '1';
+            }
+        });
+    }
+
+    // Lancer après chaque render de posts/stories
+    const _origLoadPosts = loadPosts;
+    loadPosts = async function(...args) {
+        const result = await _origLoadPosts.apply(this, args);
+        setTimeout(protectAllMedia, 100);
+        return result;
+    };
+    const _origLoadStories = typeof loadStories === 'function' ? loadStories : null;
+    if (_origLoadStories) {
+        loadStories = async function(...args) {
+            const result = await _origLoadStories.apply(this, args);
+            setTimeout(protectAllMedia, 100);
+            return result;
+        };
+    }
+    // Et au DOM ready
+    document.addEventListener('DOMContentLoaded', () => setTimeout(protectAllMedia, 200));
+</script>
+
+</body>
+</html>
