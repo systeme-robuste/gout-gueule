@@ -481,7 +481,7 @@
 
         const profileLogin = document.getElementById('loginProfileBtn');
         if (state.user) {
-            if (profileLogin) profileLogin.style.display = 'none';
+            if (profileLogin) { profileLogin.style.display = 'inline-flex'; profileLogin.textContent = '👤 Profil'; }
             navAuth.innerHTML = '';
             if (state.user.name === 'Admin') {
                 adminComposer.classList.add('hidden');
