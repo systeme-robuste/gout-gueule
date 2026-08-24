@@ -253,7 +253,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'gout-gueule-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'none', secure: process.env.NODE_ENV === 'production' }
+    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'none', secure: 'auto' }
 }));
 
 // Multer Storage
