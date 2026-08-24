@@ -330,6 +330,7 @@
     <div class="brand"><img src="/gout-gueule-logo.png" alt="Logo Goût Gueule" class="brand-logo"> <span>Goût Gueule</span></div>
     <div class="nav-right">
         <div id="wsStatus" class="ws-dot" title="WebSocket Status"></div>
+        <div id="navAuth" style="display:flex;align-items:center;gap:8px;"><button class="btn btn-primary" onclick="openTelegramLogin()">Connexion Telegram</button></div>
         <button class="btn btn-secondary" onclick="toggleTheme()" style="padding: 5px 10px;">🌙</button>
     </div>
 </nav>
@@ -446,6 +447,7 @@
 
     async function init() {
         await loadSettings();
+        await checkAuth();
         await loadFollowers();
         await loadPosts();
         await loadStories();
@@ -453,7 +455,7 @@
     }
 
     async function api(path, method = 'GET', body = null) {
-        const options = { method, headers: {}, credentials: 'include' };
+        const options = { method, headers: { 'x-visitor-id': visitorId() }, credentials: 'include' };
         if (body && !(body instanceof FormData)) {
             options.headers['Content-Type'] = 'application/json';
             options.body = JSON.stringify(body);
@@ -483,10 +485,25 @@
                 adminTabBtn.style.display = 'flex';
             }
         } else {
-            navAuth.innerHTML = `<button class="btn btn-primary" onclick="openModal('authModal')">Connexion</button>`;
+            navAuth.innerHTML = `<button class="btn btn-primary" onclick="openTelegramLogin()">Connexion</button>`;
             adminComposer.classList.add('hidden');
             adminTabBtn.style.display = 'none';
         }
+    }
+
+    function openTelegramLogin() {
+        const navAuth = document.getElementById('navAuth');
+        if (!navAuth || document.getElementById('telegram-login-widget')) return;
+        navAuth.innerHTML = '<span id="telegram-login-widget"></span><button class="btn btn-secondary" onclick="renderAuth()">Annuler</button>';
+        window.onTelegramAuth = async function(user) {
+            const data = await api('/api/auth/telegram', 'POST', user);
+            if (data.success) { state.user = data.user; renderAuth(); await loadFollowers(); }
+            else alert('Connexion Telegram impossible : ' + (data.error || 'erreur inconnue'));
+        };
+        const script = document.createElement('script'); script.async = true;
+        script.src = 'https://telegram.org/js/telegram-widget.js?22';
+        script.dataset.telegramLogin = 'XMonsieurBot'; script.dataset.size = 'medium'; script.dataset.onauth = 'onTelegramAuth(user)';
+        document.getElementById('telegram-login-widget').appendChild(script);
     }
 
     async function login() {
