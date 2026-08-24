@@ -120,8 +120,8 @@ app.get('/post/:id/:slug?', (req, res) => {
     if (!post) return res.status(404).send('<h1>Article introuvable</h1>');
     post.views = (post.views || 0) + 1;
     saveDb();
-    const advancedHtml = post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : '';
-    const html = post.editorMode === 'advanced' ? ((post.blocks || []).some(b => b.type === 'markdown') ? advancedHtml : marked.parse(post.content || '') + advancedHtml) : marked.parse(post.content || '');
+    const advancedHtml = false && post.editorMode === 'advanced' ? renderAdvancedBlocks(post.blocks || [], post.media || []) : '';
+    const html = false && post.editorMode === 'advanced' ? ((post.blocks || []).some(b => b.type === 'markdown') ? advancedHtml : marked.parse(post.content || '') + advancedHtml) : marked.parse(post.content || '');
     const ogImage = (post.media && post.media[0] && post.media[0].url) || '/og-image.jpg';
     const ogImageUrl = ogImage.startsWith('http') ? ogImage : `https://gout-gueule-fcvr.onrender.com${ogImage}`;
     const description = (post.content || '').replace(/[#*`>\n\[\]]/g, ' ').substring(0, 160).trim();
