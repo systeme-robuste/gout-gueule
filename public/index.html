@@ -511,7 +511,7 @@
         const data = await api('/api/settings');
         state.settings = data;
         document.getElementById('pageName').innerText = data.pageName || 'Goût Gueule';
-        document.getElementById('pageBio').innerText = data.bio || '';
+        document.getElementById('pageBio').innerText = data.shortBio || data.bio || '';
         document.getElementById('sidebarBio').innerText = data.bio || '';
         if (data.logoUrl) document.getElementById('profileLogo').src = data.logoUrl;
         if (data.coverUrl) {
