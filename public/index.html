@@ -817,15 +817,16 @@
     function renderAdvancedBlocks(blocks, media) {
         return (blocks || []).map(b => {
             const m = Number.isInteger(b.mediaIndex) ? media[b.mediaIndex] : (b.type !== 'markdown' && media.length ? media[0] : null);
+            const mediaUrl = m && String(m.url || '').replace(/^\/uploads\//, '/media-public/');
             const esc = v => safeCommentText(v);
             const style = `width:${Math.max(20, Math.min(100, Number(b.size)||100))}%;margin:${b.position==='left'?'0 auto 16px 0':b.position==='right'?'0 0 16px auto':'0 auto 16px'};`;
             if (b.type === 'markdown') return `<div class="advanced-markdown">${marked.parse(b.text || '')}</div>`;
             if (!m) return '';
-            const cap = esc(b.caption || m.caption || '');
-            if (b.type === 'image') return `<figure class="advanced-block" style="${style}"><img class="protected" src="${esc(m.url)}" alt="${cap}" loading="lazy" draggable="false"><figcaption>${cap}</figcaption></figure>`;
-            if (b.type === 'audio') return `<figure class="advanced-block" style="${style}"><audio controls src="${esc(m.url)}"></audio><figcaption>${cap}</figcaption></figure>`;
-            if (b.type === 'pdf') return `<figure class="advanced-block" style="${style}"><iframe src="${esc(m.url)}" title="${cap||'PDF'}" style="width:100%;height:520px"></iframe><figcaption>${cap}</figcaption></figure>`;
-            return `<figure class="advanced-block" style="${style}"><video controls src="${esc(m.url)}" ${b.type==='video_note'?'style="aspect-ratio:1;border-radius:50%;object-fit:cover"':'style="width:100%"'}></video><figcaption>${cap}</figcaption></figure>`;
+            const cap = esc(b.caption || '');
+            if (b.type === 'image') return `<figure class="advanced-block" style="${style}"><img class="protected" src="${esc(mediaUrl)}" alt="${cap}" loading="lazy" draggable="false"><figcaption>${cap}</figcaption></figure>`;
+            if (b.type === 'audio') return `<figure class="advanced-block" style="${style}"><audio controls src="${esc(mediaUrl)}"></audio><figcaption>${cap}</figcaption></figure>`;
+            if (b.type === 'pdf') return `<figure class="advanced-block" style="${style}"><iframe src="${esc(mediaUrl)}" title="${cap||'PDF'}" style="width:100%;height:520px"></iframe><figcaption>${cap}</figcaption></figure>`;
+            return `<figure class="advanced-block" style="${style}"><video controls src="${esc(mediaUrl)}" ${b.type==='video_note'?'style="aspect-ratio:1;border-radius:50%;object-fit:cover"':'style="width:100%"'}></video><figcaption>${cap}</figcaption></figure>`;
         }).join('');
     }
 
