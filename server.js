@@ -320,7 +320,7 @@ function magicLinkTransport() {
     const user = process.env.GMAIL_SMTP_USER || process.env.SMTP_USER;
     const pass = process.env.GMAIL_SMTP_APP_PASSWORD || process.env.SMTP_PASS;
     if (!user || !pass || user.toLowerCase() !== MAGIC_LINK_SENDER.toLowerCase()) return null;
-    return nodemailer.createTransport({ host: process.env.SMTP_HOST || 'smtp.gmail.com', port: Number(process.env.SMTP_PORT || 465), secure: process.env.SMTP_SECURE !== 'false', auth: { user, pass } });
+    return nodemailer.createTransport({ host: process.env.SMTP_HOST || 'smtp.gmail.com', port: Number(process.env.SMTP_PORT || 587), secure: process.env.SMTP_SECURE === 'true', requireTLS: true, connectionTimeout: 15000, greetingTimeout: 15000, socketTimeout: 20000, auth: { user, pass } });
 }
 function normaliseEmail(value) { return String(value || '').trim().toLowerCase(); }
 async function saveMagicToken(id, email, tokenHash, expiresAt) {
